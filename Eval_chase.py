@@ -1,13 +1,21 @@
 import os
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+
+from tensorflow import ConfigProto, Session
+config = ConfigProto()
+config.gpu_options.allow_growth = True
+sess = Session(config=config)
+
 import cv2
 import numpy as np
+import imageio
 from sklearn.metrics import recall_score, roc_auc_score, accuracy_score, confusion_matrix
 
 from keras.callbacks import  ModelCheckpoint
 import scipy.misc as mc
 import math
 from util import *
-data_location = ''
+data_location = './'
 testing_images_loc = data_location + 'CHASE/test/images/'
 testing_label_loc = data_location + 'CHASE/test/labels/'
 
@@ -16,8 +24,8 @@ test_data = []
 test_label = []
 desired_size=1008
 for i in test_files:
-    im = mc.imread(testing_images_loc + i)
-    label = mc.imread(testing_label_loc + "Image_" + i.split('_')[1].split(".")[0] + "_1stHO.png",mode="L")
+    im = imageio.imread(testing_images_loc + i)
+    label = imageio.imread(testing_label_loc + "Image_" + i.split('_')[1].split(".")[0] + "_1stHO.png", pilmode="L")
     old_size = im.shape[:2]  # old_size is in (height, width) format
     delta_w = desired_size - old_size[1]
     delta_h = desired_size - old_size[0]
@@ -66,7 +74,7 @@ for y in y_pred:
     _, temp = cv2.threshold(y, 0.5, 1, cv2.THRESH_BINARY)
     y_pred_threshold.append(temp)
     y = y * 255
-    cv2.imwrite('CHASE/test/results/%d.png' % i, y)
+    cv2.imwrite('CHASE1/test/results/%d.png' % i, y)
     i+=1
 y_test = list(np.ravel(y_test))
 y_pred_threshold = list(np.ravel(y_pred_threshold))

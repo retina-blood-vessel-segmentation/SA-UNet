@@ -1,8 +1,8 @@
 import cv2
 import os
 # Please modify the path
-path="DRIVE/train/images"
-save="Drive/flip/images/"
+path="CHASE1/train/images"
+save="CHASE1/flip/"
 for name in os.listdir(path):
     image = cv2.imread(path+name)
 

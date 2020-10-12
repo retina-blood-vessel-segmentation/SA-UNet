@@ -175,7 +175,19 @@ def threadOPS(img_path, new_img_path, label_path, new_label_path):
 
 # Please modify the path
 if __name__ == '__main__':
-    threadOPS("DRIVE/train/image", #set your path of training images
-              "Drive/aug/image",
-              "DRIVE/train/label",# set your path of training labels
-              "DRIVE/aug/label")
+
+    # if you encounter this runtime error:
+    #   ValueError: cannot set WRITEABLE flag to True of this array
+    # install appropriate numpy version. For the version, check author's
+    # requirements file.
+
+    training_images_input_dir = "CHASE1/train/image"
+    training_images_output_dir = "CHASE1/aug/image" # create this dir if it does not exist first, then run the script
+    training_labels_input_dir = "CHASE1/train/label"
+    training_labels_output_dir = "CHASE1/aug/label" # create this dir if it does not exist first, then run the script
+
+
+    threadOPS(training_images_input_dir, # set your path of training images
+              training_images_output_dir,
+              training_labels_input_dir, # set your path of training labels
+              training_labels_output_dir)

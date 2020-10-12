@@ -1,5 +1,10 @@
 import os
 
+from tensorflow import ConfigProto, Session
+config = ConfigProto()
+config.gpu_options.allow_growth = True
+sess = Session(config=config)
+
 import numpy as np
 import cv2
 from keras.callbacks import TensorBoard, ModelCheckpoint
@@ -7,10 +12,10 @@ np.random.seed(42)
 import scipy.misc as mc
 import matplotlib.pyplot as plt
 data_location = ''
-training_images_loc = data_location + 'CHASE/train/imageS/'
-training_label_loc = data_location + 'CHASE/train/labelS/'
-validate_images_loc = data_location + 'CHASE/validate/images/'
-validate_label_loc = data_location + 'CHASE/validate/labels/'
+training_images_loc = data_location + 'CHASE1/train/images/'
+training_label_loc = data_location + 'CHASE1/train/labels/'
+validate_images_loc = data_location + 'CHASE1/validate/images/'
+validate_label_loc = data_location + 'CHASE1/validate/labels/'
 train_files = os.listdir(training_images_loc)
 train_data = []
 train_label = []
@@ -95,7 +100,7 @@ TensorBoard(log_dir='./autoencoder', histogram_freq=0,
 
 from  SA_UNet import *
 model=SA_UNet(input_size=(desired_size,desired_size,3),start_neurons=16,lr=1e-3,keep_prob=0.87,block_size=7)
-weight="Model/CHASE/SA_UNet.h5"
+weight="Model/CHASE1/SA_UNet.h5"
 
 restore=False
 
