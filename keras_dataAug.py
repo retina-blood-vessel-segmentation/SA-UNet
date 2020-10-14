@@ -109,6 +109,11 @@ opsList = {"randomRotation", "randomColor", "randomGaussian"}
 
 def threadOPS(img_path, new_img_path, label_path, new_label_path):
 
+    if not os.path.exists(new_img_path):
+        os.makedirs(new_img_path, exist_ok=True)
+    if not os.path.exists(new_label_path):
+        os.makedirs(new_label_path, exist_ok=True)
+
     # img path
     print(img_path)
     if os.path.isdir(img_path):
@@ -178,13 +183,15 @@ if __name__ == '__main__':
 
     # if you encounter this runtime error:
     #   ValueError: cannot set WRITEABLE flag to True of this array
-    # install appropriate numpy version. For the version, check author's
+    # install appropriate numpy version (1.15.4). For the version, check author's
     # requirements file.
 
-    training_images_input_dir = "CHASE1/train/image"
-    training_images_output_dir = "CHASE1/aug/image" # create this dir if it does not exist first, then run the script
-    training_labels_input_dir = "CHASE1/train/label"
-    training_labels_output_dir = "CHASE1/aug/label" # create this dir if it does not exist first, then run the script
+    dataset = "DROPS"
+
+    training_images_input_dir = f"{dataset}/train/images"
+    training_images_output_dir = f"{dataset}/aug/images/rotcropetc" # create this dir if it does not exist first, then run the script
+    training_labels_input_dir = f"{dataset}/train/labels"
+    training_labels_output_dir = f"{dataset}/aug/labels/rotcropetc" # create this dir if it does not exist first, then run the script
 
 
     threadOPS(training_images_input_dir, # set your path of training images
