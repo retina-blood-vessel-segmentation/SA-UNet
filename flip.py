@@ -1,21 +1,38 @@
 import cv2
 import os
-# Please modify the path
-path="CHASE1/train/images"
-save="CHASE1/flip/"
-for name in os.listdir(path):
-    image = cv2.imread(path+name)
 
-    # Flipped Horizontally
-    h_flip = cv2.flip(image, 1)
-    cv2.imwrite(save+"h"+name, h_flip)
+dataset = "DROPS"
+
+input_paths = [
+    f"{dataset}/train/images",
+    f"{dataset}/train/labels"
+]
+output_paths = [
+    f"{dataset}/aug/images/flip",
+    f"{dataset}/aug/labels/flip"
+]
+
+assert len(input_paths) == len(output_paths)
+
+for input, output in zip(input_paths, output_paths):
+
+    if not os.path.exists(output):
+        os.makedirs(output, exist_ok=True)
+
+    for name in os.listdir(input):
+        image = cv2.imread(os.path.join(input, name))
+
+        cv2.imwrite(
+            os.path.join(output, "h" + name),
+            cv2.flip(image, 1)      # flip horizontally
+        )
+        cv2.imwrite(
+            os.path.join(output, "v" + name),
+            cv2.flip(image, 0)      # flip vertically
+        )
+        cv2.imwrite(
+            os.path.join(output, "hv" + name),
+            cv2.flip(image, -1)    # flip horizontally and vertically
+        )
 
 
-
-    # Flipped Vertically
-    v_flip = cv2.flip(image, 0)
-    cv2.imwrite(save+"v"+name, v_flip)
-
-    # Flipped Horizontally & Vertically
-    hv_flip = cv2.flip(image, -1)
-    cv2.imwrite(save+"hv"+name, hv_flip)
