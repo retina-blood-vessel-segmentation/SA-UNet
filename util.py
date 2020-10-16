@@ -1,3 +1,14 @@
+import cv2
+import imageio
+import math
+import numpy as np
+import os
+
+from pathlib import Path
+from sklearn.metrics import recall_score, roc_auc_score, accuracy_score
+from sklearn.metrics import confusion_matrix, precision_score, jaccard_score
+
+
 def crop_to_shape(data, shape):
     """
     Crops the array to the given image shape by removing the border (expects a tensor of shape [batches, nx, ny, channels].
@@ -30,3 +41,112 @@ def crop_to_shape(data, shape):
             return data[:, offset0:-offset0, offset1:(-offset1-1)]
         else:
             return data[:, offset0:-offset0, offset1:(-offset1)]
+
+
+def evaluate(y_test, y_pred, threshold=0.5, mask_data=None, use_fov=False):
+    """
+    Calculate numerical metrics based on input predictions image and ground-truth values.
+
+    Calculated metrics are accuracy, precision, sensitivity, specificity, f1 measure, jaccard similarity score, MCC and
+    area under ROC curve. Metrics can be calculated for all input predictions or just portions inside field-of-view.
+    In later case, use_fov must be set to True and mask data must be provided. All metrics are printed on the standard
+    output.
+
+    :param y_test: 1-D array of ground-truth {0, 1} values where 1 represents a pixel of positive class, and 0 a pixel
+    of negative class.
+    :param y_pred: 1-D array of predictions normalized to [0, 1] interval. Must be of same length as y_test.
+    :param threshold: A value in [0, 1] range used to convert y_pred from (0, 1) interval to {0, 1} values.
+    :param mask_data: 1-D array of values in (0, 1) range used to mask y_pred values. Must be of same length as y_pred.
+    :param use_fov: If True, y_pred will be masked.
+    :return: None
+    """
+
+    assert len(y_pred) == len(y_test)
+    if use_fov:
+        assert mask_data is not None
+    if mask_data is not None:
+        assert len(mask_data) == len(y_test)
+
+    y_pred_threshold = np.ravel(y_pred > threshold)
+    if use_fov:
+        y_test_inside_fov = [y for m, y in zip(mask_data, y_test) if m > 0.5]
+        y_pred_inside_fov = [y for m, y in zip(mask_data, np.ravel(y_pred)) if m > 0.5]
+        y_pred_thresh_inside_fov = [y for m, y in zip(mask_data, y_pred_threshold) if m > 0.5]
+
+        assert len(y_test_inside_fov) == len(y_pred_inside_fov) == len(y_pred_thresh_inside_fov)
+
+        y_test = y_test_inside_fov
+        y_pred = y_pred_inside_fov
+        y_pred_threshold = y_pred_thresh_inside_fov
+
+    tn, fp, fn, tp = confusion_matrix(y_test, y_pred_threshold).ravel()
+    N = tn + tp + fn + fp
+    S = (tp + fn) / N
+    P = (tp + fp) / N
+
+    print('Accuracy:', accuracy_score(y_test, y_pred_threshold))
+    print('Sensitivity:', recall_score(y_test, y_pred_threshold))
+    print('Specificity', tn / (tn + fp))
+    print('Precision: ', precision_score(y_test, y_pred_threshold))
+    print('ROCAUC: ', roc_auc_score(y_test, y_pred))
+    print("F1: ", 2 * tp / (2 * tp + fn + fp))
+    print("Jaccard score: ", jaccard_score(y_test, y_pred_threshold))
+    print("MCC:", (tp / N - S * P) / math.sqrt(P * S * (1 - S) * (1 - P)))
+
+
+def load_test_files(test_path, label_path, desired_size, label_name_fnc):
+    """
+
+    :param path:
+    :param desired_size:
+    :return:
+    """
+
+    test_path = Path(test_path)
+    label_path = Path(label_path)
+
+    test_images = list()
+    test_labels = list()
+    for p in test_path.glob('**/*'):
+        im = imageio.imread(str(p))
+        label = imageio.imread(label_path / label_name_fnc(p), pilmode='L')
+
+        old_size = im.shape[:2]
+        delta_w = desired_size - old_size[1]
+        delta_h = desired_size - old_size[0]
+
+        top, bottom = delta_h // 2, delta_h - (delta_h // 2)
+        left, right = delta_w // 2, delta_w - (delta_w // 2)
+
+        color = [0, 0, 0]
+
+        new_im = cv2.copyMakeBorder(im, top, bottom, left, right, cv2.BORDER_CONSTANT, value=color)
+        test_images.append(cv2.resize(new_im, (desired_size, desired_size)))
+        _, temp = cv2.threshold(label, 127, 255, cv2.THRESH_BINARY)
+        test_labels.append(temp)
+
+    x_test = np.array(test_images).astype('float32') / 255.
+    x_test = np.reshape(x_test, (len(x_test), desired_size, desired_size, 3))
+    y_test = np.array(test_labels).astype('float32') / 255.
+
+    return x_test, y_test
+
+
+def load_mask_files(mask_path, test_path, mask_name_fnc):
+    """
+
+    :param mask_path:
+    :param test_path:
+    :param mask_name_fnc:
+    :return:
+    """
+
+    test_path = Path(test_path)
+    mask_path = Path(mask_path)
+
+    all_masks_data = list()
+    for p in test_path.glob("**/*"):
+        mask_data = imageio.imread(mask_path / mask_name_fnc(p))
+        all_masks_data.append(np.array(mask_data).astype('float32') / 255.)
+
+    return all_masks_data
