@@ -1,4 +1,6 @@
 
+import keras.metrics as KM
+
 from keras.optimizers import *
 from keras.models import Model
 
@@ -188,6 +190,12 @@ def SA_UNet(input_size=(512, 512, 3), block_size=7,keep_prob=0.9,start_neurons=1
 
     model = Model(input=inputs, output=output_layer)
 
-    model.compile(optimizer=Adam(lr=lr), loss='binary_crossentropy', metrics=['accuracy'])
+    metrics = [
+        'accuracy',
+        KM.Precision(),
+        KM.Recall()
+    ]
+
+    model.compile(optimizer=Adam(lr=lr), loss='binary_crossentropy', metrics=metrics)
 
     return model
