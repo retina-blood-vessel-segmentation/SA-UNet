@@ -1,7 +1,7 @@
 import os
 os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
-from keras.callbacks import  ModelCheckpoint
+from keras.callbacks import ModelCheckpoint
 from tensorflow import ConfigProto, Session
 
 config = ConfigProto()
@@ -28,17 +28,9 @@ use_fov = True
 # =================================================================== #
 
 
-def get_label_name(image_path):
-    return Path(image_path).stem + '_1stHO.png'
-
-
-def get_mask_name(image_path):
-    return Path(image_path).stem + '.png'
-
-
 print("> Predicting on CHASE dataset.")
 
-x_test, y_test = load_test_files(testing_images_loc, testing_label_loc, desired_size, get_label_name)
+x_test, y_test = load_files(testing_images_loc, testing_label_loc, desired_size, get_label_name_chase, mode='test')
 
 model = SA_UNet(input_size=(desired_size, desired_size, 3), start_neurons=16, lr=1e-4, keep_prob=1, block_size=1)
 
@@ -64,6 +56,6 @@ y_test = list(np.ravel(y_test))
 # load masks if you want statistics to be calculate just for inside fov
 all_masks_data = None
 if use_fov:
-    all_masks_data = np.ravel(load_mask_files(fov_masks_loc, testing_images_loc, get_mask_name))
+    all_masks_data = np.ravel(load_mask_files(fov_masks_loc, testing_images_loc, get_mask_name_chase))
 
 evaluate(y_test=y_test, y_pred=np.ravel(y_pred), threshold=threshold, mask_data=all_masks_data, use_fov=use_fov)

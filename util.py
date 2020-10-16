@@ -94,7 +94,7 @@ def evaluate(y_test, y_pred, threshold=0.5, mask_data=None, use_fov=False):
     print("MCC:", (tp / N - S * P) / math.sqrt(P * S * (1 - S) * (1 - P)))
 
 
-def load_test_files(test_path, label_path, desired_size, label_name_fnc):
+def load_files(images_path, label_path, desired_size, label_name_fnc, mode):
     """
 
     :param path:
@@ -102,15 +102,13 @@ def load_test_files(test_path, label_path, desired_size, label_name_fnc):
     :return:
     """
 
-    test_path = Path(test_path)
+    images_path = Path(images_path)
     label_path = Path(label_path)
 
-    test_images = list()
-    test_labels = list()
-    for p in test_path.glob('**/*'):
+    images = list()
+    labels = list()
+    for p in images_path.glob('**/*'):
         im = imageio.imread(str(p))
-        label = imageio.imread(label_path / label_name_fnc(p), pilmode='L')
-
         old_size = im.shape[:2]
         delta_w = desired_size - old_size[1]
         delta_h = desired_size - old_size[0]
@@ -118,18 +116,24 @@ def load_test_files(test_path, label_path, desired_size, label_name_fnc):
         top, bottom = delta_h // 2, delta_h - (delta_h // 2)
         left, right = delta_w // 2, delta_w - (delta_w // 2)
 
-        color = [0, 0, 0]
+        new_im = cv2.copyMakeBorder(im, top, bottom, left, right, cv2.BORDER_CONSTANT, value=[0, 0, 0])
+        images.append(cv2.resize(new_im, (desired_size, desired_size)))
 
-        new_im = cv2.copyMakeBorder(im, top, bottom, left, right, cv2.BORDER_CONSTANT, value=color)
-        test_images.append(cv2.resize(new_im, (desired_size, desired_size)))
-        _, temp = cv2.threshold(label, 127, 255, cv2.THRESH_BINARY)
-        test_labels.append(temp)
+        label = imageio.imread(label_path / label_name_fnc(p), pilmode='L')
+        if mode.lower() in ['train', 'validate']:
+            new_label = cv2.copyMakeBorder(label, top, bottom, left, right, cv2.BORDER_CONSTANT, value=[0])
+            _, temp = cv2.threshold(new_label, 127, 255, cv2.THRESH_BINARY)
+        else:
+            _, temp = cv2.threshold(label, 127, 255, cv2.THRESH_BINARY)
+        labels.append(temp)
 
-    x_test = np.array(test_images).astype('float32') / 255.
-    x_test = np.reshape(x_test, (len(x_test), desired_size, desired_size, 3))
-    y_test = np.array(test_labels).astype('float32') / 255.
+    x_data = np.array(images).astype('float32') / 255.
+    x_data = np.reshape(x_data, (len(x_data), desired_size, desired_size, 3))
+    y_data = np.array(labels).astype('float32') / 255.
+    if mode.lower() in ['train', 'validate']:
+        y_data = np.reshape(y_data, (len(y_data), desired_size, desired_size, 1))
 
-    return x_test, y_test
+    return x_data, y_data
 
 
 def load_mask_files(mask_path, test_path, mask_name_fnc):
@@ -150,3 +154,27 @@ def load_mask_files(mask_path, test_path, mask_name_fnc):
         all_masks_data.append(np.array(mask_data).astype('float32') / 255.)
 
     return all_masks_data
+
+
+def get_label_name_drops(image_path):
+    return Path(image_path).stem + '.png'
+
+
+def get_mask_name_drops(image_path):
+    return Path(image_path).stem + '.png'
+
+
+def get_label_name_drive(image_path):
+    return Path(image_path).stem.split('_')[0] + '_manual1.png'
+
+
+def get_mask_name_drive(image_path):
+    return Path(image_path).stem + '_mask.gif'
+
+
+def get_label_name_chase(image_path):
+    return Path(image_path).stem + '_1stHO.png'
+
+
+def get_mask_name_chase(image_path):
+    return Path(image_path).stem + '.png'
