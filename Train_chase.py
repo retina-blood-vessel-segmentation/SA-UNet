@@ -1,123 +1,79 @@
 import os
+import matplotlib.pyplot as plt
 
+from datetime import datetime
+from keras.callbacks import TensorBoard, ModelCheckpoint
 from tensorflow import ConfigProto, Session
 config = ConfigProto()
 config.gpu_options.allow_growth = True
 sess = Session(config=config)
 
-import numpy as np
-import cv2
-from keras.callbacks import TensorBoard, ModelCheckpoint
-np.random.seed(42)
-import scipy.misc as mc
-import matplotlib.pyplot as plt
+from SA_UNet import SA_UNet
+from util import load_files
+from util import get_label_name_chase
+
+
+# TODO location and model parameters
 data_location = ''
-training_images_loc = data_location + 'CHASE1/train/images/'
-training_label_loc = data_location + 'CHASE1/train/labels/'
-validate_images_loc = data_location + 'CHASE1/validate/images/'
-validate_label_loc = data_location + 'CHASE1/validate/labels/'
-train_files = os.listdir(training_images_loc)
-train_data = []
-train_label = []
-validate_files = os.listdir(validate_images_loc)
-validate_data = []
-validate_label = []
-desired_size=1008
+training_images_loc = os.path.join(data_location, 'DRIVE/train/images/')
+training_label_loc = os.path.join(data_location, 'DRIVE/train/labels/')
+validate_images_loc = os.path.join(data_location, 'DRIVE/validate/images/')
+validate_label_loc = os.path.join(data_location, 'DRIVE/validate/labels/')
+transfer_learning_model = None
+model_path = "Model/DRIVE/SA_UNet.py"
 
-for i in train_files:
-    im = mc.imread(training_images_loc + i)
-    label = mc.imread(training_label_loc + i.split('_')[0]+"_"+i.split('_')[1].split(".")[0] +"_1stHO.png" ,mode="L")
-    old_size = im.shape[:2]  # old_size is in (height, width) format
-    delta_w = desired_size - old_size[1]
-    delta_h = desired_size - old_size[0]
-
-    top, bottom = delta_h // 2, delta_h - (delta_h // 2)
-    left, right = delta_w // 2, delta_w - (delta_w // 2)
-
-    color = [0, 0, 0]
-    color2 = [0]
-    new_im = cv2.copyMakeBorder(im, top, bottom, left, right, cv2.BORDER_CONSTANT,
-                                value=color)
-
-    new_label = cv2.copyMakeBorder(label, top, bottom, left, right, cv2.BORDER_CONSTANT,
-                                   value=color2)
-
-    train_data.append(cv2.resize(new_im, (desired_size, desired_size)))
-
-    temp = cv2.resize(new_label,
-                      (desired_size, desired_size))
-    _, temp = cv2.threshold(temp, 127, 255, cv2.THRESH_BINARY)
-    train_label.append(temp)
+# TODO network training parameters
+lr = 1e-3
+start_neurons = 16
+keep_prob = 0.82
+block_size = 7
+desired_size = 1008
+epochs = 100
+batch_size = 2
 
 
+x_train, y_train = load_files(training_images_loc, training_label_loc, desired_size, get_label_name_chase,
+                              mode='train')
+x_validate, y_validate = load_files(validate_images_loc, validate_label_loc, desired_size, get_label_name_chase,
+                                    mode='validate')
 
-for i in validate_files:
-    im = mc.imread(validate_images_loc + i)
-    label = mc.imread(validate_label_loc +i.split('_')[0]+'_'+ i.split('_')[1].split(".")[0] +"_1stHO.png" ,mode="L")
-    old_size = im.shape[:2]  # old_size is in (height, width) format
-    delta_w = desired_size - old_size[1]
-    delta_h = desired_size - old_size[0]
+logdir = "logs/DRIVE/" + datetime.now().strftime("%Y%m%d-%H%M%S")
+tensorboard_callback = TensorBoard(
+    log_dir=logdir,
+    histogram_freq=0,
+    write_graph=True,
+    write_images=True
+)
 
-    top, bottom = delta_h // 2, delta_h - (delta_h // 2)
-    left, right = delta_w // 2, delta_w - (delta_w // 2)
+model = SA_UNet(
+    input_size=(desired_size, desired_size, 3),
+    start_neurons=start_neurons,
+    lr=lr,
+    keep_prob=keep_prob,
+    block_size=block_size
+)
+model.summary()
 
-    color = [0, 0, 0]
-    color2 = [0]
-    new_im = cv2.copyMakeBorder(im, top, bottom, left, right, cv2.BORDER_CONSTANT,
-                                value=color)
+if transfer_learning_model is not None:
+    if os.path.isfile(transfer_learning_model):
+        print(f"> Initializing the network using weight of model {transfer_learning_model}.")
+        model.load_weights(transfer_learning_model)
+    else:
+        print("Transfer learning demanded, but no weights are provided.")
+        print("Exiting.")
+        exit(1)
 
-    new_label = cv2.copyMakeBorder(label, top, bottom, left, right, cv2.BORDER_CONSTANT,
-                                   value=color2)
+model_checkpoint = ModelCheckpoint(model_path, monitor='val_accuracy', verbose=1, save_best_only=False)
 
-    validate_data.append(cv2.resize(new_im, (desired_size, desired_size)))
-
-    temp = cv2.resize(new_label,
-                      (desired_size, desired_size))
-    _, temp = cv2.threshold(temp, 127, 255, cv2.THRESH_BINARY)
-    validate_label.append(temp)
-train_data = np.array(train_data)
-
-train_label = np.array(train_label)
-validate_data = np.array(validate_data)
-validate_label = np.array(validate_label)
-
-
-
-
-x_train = train_data.astype('float32') / 255.
-y_train = train_label.astype('float32') / 255.
-x_train = np.reshape(x_train, (len(x_train), desired_size, desired_size, 3))  # adapt this if using `channels_first` image data format
-y_train = np.reshape(y_train, (len(y_train), desired_size, desired_size, 1))  # adapt this if using `channels_first` im
-
-x_validate = validate_data.astype('float32') / 255.
-y_validate = validate_label.astype('float32') / 255.
-x_validate = np.reshape(x_validate, (len(x_validate), desired_size, desired_size, 3))  # adapt this if using `channels_first` image data format
-y_validate = np.reshape(y_validate, (len(y_validate), desired_size, desired_size, 1))  # adapt this if using `channels_first` im
-
-
-TensorBoard(log_dir='./autoencoder', histogram_freq=0,
-            write_graph=True, write_images=True)
-
-from  SA_UNet import *
-model=SA_UNet(input_size=(desired_size,desired_size,3),start_neurons=16,lr=1e-3,keep_prob=0.87,block_size=7)
-weight="Model/CHASE1/SA_UNet.h5"
-
-restore=False
-
-if restore and os.path.isfile(weight):
-    model.load_weights(weight)
-
-model_checkpoint = ModelCheckpoint(weight, monitor='val_accuracy', verbose=1, save_best_only=False)
-
-# plot_model(model, to_file='unet_resnet.png', show_shapes=False, show_layer_names=)
-
-history=model.fit(x_train, y_train,
-                epochs=100, #first  100 with lr=1e-3,,and last 50 with lr=1e-4
-                batch_size=2,
-                # validation_split=0.1,
+history = model.fit(x_train, y_train,
+                epochs=epochs,
+                batch_size=batch_size,
                 validation_data=(x_validate, y_validate),
                 shuffle=True,
-                callbacks= [TensorBoard(log_dir='./autoencoder'), model_checkpoint])
+                callbacks=[
+                    tensorboard_callback,
+                    model_checkpoint
+                ])
 
 
 print(history.history.keys())
