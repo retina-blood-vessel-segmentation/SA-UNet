@@ -156,6 +156,28 @@ def load_mask_files(mask_path, test_path, mask_name_fnc):
     return all_masks_data
 
 
+def get_mask_pattern_for_dataset(dataset):
+    if dataset == 'DRIVE':
+        return get_mask_name_drive
+    elif dataset == 'CHASE':
+        return get_mask_name_chase
+    elif dataset == 'DROPS':
+        return get_mask_name_drops
+    elif dataset == 'STARE':
+        return get_mask_name_stare
+
+
+def get_label_pattern_for_dataset(dataset):
+    if dataset == 'DRIVE':
+        return get_label_name_drive
+    elif dataset == 'CHASE':
+        return get_label_name_chase
+    elif dataset == 'DROPS':
+        return get_label_name_drops
+    elif dataset == 'STARE':
+        return get_label_name_stare
+
+
 def get_label_name_drops(image_path):
     return Path(image_path).stem + '.png'
 
@@ -177,4 +199,12 @@ def get_label_name_chase(image_path):
 
 
 def get_mask_name_chase(image_path):
+    return Path(image_path).stem + '.png'
+
+
+def get_label_name_stare(image_path):
+    return Path(image_path).stem + '.ah.ppm'
+
+
+def get_mask_name_stare(image_path):
     return Path(image_path).stem + '.png'
