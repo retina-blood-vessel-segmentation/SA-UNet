@@ -1,0 +1,2 @@
+run train_all with stdout and stderr logging:
+    logf=$(date +"%Y-%m-%d-%T").train.log; touch $logf; ./train_all.sh 2>&1 | tee $logf

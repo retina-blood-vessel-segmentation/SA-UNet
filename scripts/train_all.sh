@@ -1,0 +1,10 @@
+./train_chase.sh;
+./train_drive.sh;
+./train_stare.sh;
+./train_drops.sh;
+./train_drive_drops-model.sh;
+./train_stare_drops-model.sh;
+./train_chase_drops-model.sh;
+./train_drops_chase-model.sh;
+./train_drops_drive-model.sh;
+./train_drops_stare-model.sh;
