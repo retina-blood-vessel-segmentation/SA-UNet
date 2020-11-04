@@ -1,5 +1,6 @@
 import cv2
 import imageio
+import json
 import math
 import numpy as np
 import os
@@ -43,7 +44,7 @@ def crop_to_shape(data, shape):
             return data[:, offset0:-offset0, offset1:(-offset1)]
 
 
-def evaluate(y_test, y_pred, threshold=0.5, mask_data=None, use_fov=False):
+def evaluate(y_test, y_pred, result_dir, threshold=0.5, mask_data=None, use_fov=False):
     """
     Calculate numerical metrics based on input predictions image and ground-truth values.
 
@@ -84,14 +85,20 @@ def evaluate(y_test, y_pred, threshold=0.5, mask_data=None, use_fov=False):
     S = (tp + fn) / N
     P = (tp + fp) / N
 
-    print('Accuracy:', accuracy_score(y_test, y_pred_threshold))
-    print('Sensitivity:', recall_score(y_test, y_pred_threshold))
-    print('Specificity', tn / (tn + fp))
-    print('Precision: ', precision_score(y_test, y_pred_threshold))
-    print('ROCAUC: ', roc_auc_score(y_test, y_pred))
-    print("F1: ", 2 * tp / (2 * tp + fn + fp))
-    print("Jaccard score: ", jaccard_score(y_test, y_pred_threshold))
-    print("MCC:", (tp / N - S * P) / math.sqrt(P * S * (1 - S) * (1 - P)))
+    metrics = dict()
+    metrics['accuracy'] = accuracy_score(y_test, y_pred_threshold)
+    metrics['sensitivity'] = recall_score(y_test, y_pred_threshold)
+    metrics['specificity'] = tn / (tn + fp)
+    metrics['precision'] = precision_score(y_test, y_pred_threshold)
+    metrics['rocauc'] = roc_auc_score(y_test, y_pred)
+    metrics['f1'] = 2 * tp / (2 * tp + fn + fp)
+    metrics['jaccard_score'] = jaccard_score(y_test, y_pred_threshold)
+    metrics['mcc'] = (tp / N - S * P) / math.sqrt(P * S * (1 - S) * (1 - P))
+
+    with open(os.path.join(result_dir, 'performance.json'), 'w') as fout:
+        json.dump(metrics, fout)
+
+    print(metrics)
 
 
 def load_files(images_path, label_path, desired_size, label_name_fnc, mode):

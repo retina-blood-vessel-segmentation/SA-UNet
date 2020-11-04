@@ -84,7 +84,10 @@ y_pred = crop_to_shape(y_pred, (n_test_images, image_height, image_width, 1))
 
 # save predictions
 if not os.path.exists(output_dir):
-    os.makedirs(output_dir)
+    probability_maps_dir = os.path.join(output_dir, "probability_maps")
+    segmentation_masks_dir = os.path.join(output_dir, "segmentation_masks")
+    os.makedirs(probability_maps_dir, exist_ok=True)
+    os.makedirs(segmentation_masks_dir, exist_ok=True)
 
 for i, y in enumerate(y_pred):
     _, temp = cv2.threshold(y, threshold, 1, cv2.THRESH_BINARY)
@@ -92,9 +95,16 @@ for i, y in enumerate(y_pred):
     cv2.imwrite(os.path.join(output_dir, f"{i}-thresholded.png"), temp * 255)
 y_test = list(np.ravel(y_test))
 
-# load masks if you want statistics to be calculate just for inside fov
+# load masks if you want statistics to be calculated just for inside fov
 all_masks_data = None
 if use_fov:
     all_masks_data = np.ravel(load_mask_files(fov_masks_loc, testing_images_loc, get_mask_pattern_for_dataset(dataset)))
 
-evaluate(y_test=y_test, y_pred=np.ravel(y_pred), threshold=threshold, mask_data=all_masks_data, use_fov=use_fov)
+evaluate(
+    y_test=y_test,
+    y_pred=np.ravel(y_pred),
+    threshold=threshold,
+    mask_data=all_masks_data,
+    use_fov=use_fov,
+    result_dir=output_dir
+)
