@@ -27,3 +27,5 @@ class Config:
         start_neurons = 16
         keep_prob = 1
         block_size = 1
+        epochs = 150
+        batch_size = 2
