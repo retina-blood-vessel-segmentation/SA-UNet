@@ -83,16 +83,17 @@ y_pred = model.predict(x_test)
 y_pred = crop_to_shape(y_pred, (n_test_images, image_height, image_width, 1))
 
 # save predictions
-if not os.path.exists(output_dir):
-    probability_maps_dir = os.path.join(output_dir, "probability_maps")
-    segmentation_masks_dir = os.path.join(output_dir, "segmentation_masks")
-    os.makedirs(probability_maps_dir, exist_ok=True)
-    os.makedirs(segmentation_masks_dir, exist_ok=True)
+probability_maps_dir = os.path.join(output_dir, "probability_maps")
+segmentation_masks_dir = os.path.join(output_dir, "segmentation_masks")
+if not os.path.exists(probability_maps_dir):
+    os.makedirs(probability_maps_dir)
+if not os.path.exists(segmentation_masks_dir):
+    os.makedirs(segmentation_masks_dir)
 
 for i, y in enumerate(y_pred):
     _, temp = cv2.threshold(y, threshold, 1, cv2.THRESH_BINARY)
-    cv2.imwrite(os.path.join(output_dir, f"{i}.png"), y * 255)
-    cv2.imwrite(os.path.join(output_dir, f"{i}-thresholded.png"), temp * 255)
+    cv2.imwrite(os.path.join(probability_maps_dir, f"{i}.png"), y * 255)
+    cv2.imwrite(os.path.join(segmentation_masks_dir, f"{i}-threshold-{threshold}.png"), temp * 255)
 y_test = list(np.ravel(y_test))
 
 # load masks if you want statistics to be calculated just for inside fov
