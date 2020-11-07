@@ -3,10 +3,11 @@ import imageio
 import json
 import math
 import numpy as np
+import pickle
 import os
 
 from pathlib import Path
-from sklearn.metrics import recall_score, roc_auc_score, accuracy_score
+from sklearn.metrics import recall_score, roc_auc_score, accuracy_score, roc_curve
 from sklearn.metrics import confusion_matrix, precision_score, jaccard_score
 
 
@@ -79,6 +80,10 @@ def evaluate(y_test, y_pred, result_dir, threshold=0.5, mask_data=None, use_fov=
         y_test = y_test_inside_fov
         y_pred = y_pred_inside_fov
         y_pred_threshold = y_pred_thresh_inside_fov
+
+    fpr, tpr, thresholds = roc_curve(y_true=y_test, y_score=y_pred)
+    with open(os.path.join(result_dir, 'roc.pickle'), 'wb') as roc_file:
+        pickle.dump([fpr, tpr, thresholds], roc_file)
 
     tn, fp, fn, tp = confusion_matrix(y_test, y_pred_threshold).ravel()
     N = tn + tp + fn + fp
