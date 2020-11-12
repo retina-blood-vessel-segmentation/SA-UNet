@@ -121,11 +121,6 @@ def get_argument(argument, context, args):
     return value
 
 
-def attach_to_context(context, object):
-    if context is not None:
-        context.log_
-
-
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
