@@ -114,8 +114,8 @@ def load_files(images_path, label_path, desired_size, label_name_fnc, mode):
     :return:
     """
 
-    images_path = Path(images_path)
-    label_path = Path(label_path)
+    images_path = Path(images_path).resolve()
+    label_path = Path(label_path).resolve()
 
     images = list()
     labels = list()
@@ -157,8 +157,8 @@ def load_mask_files(mask_path, test_path, mask_name_fnc):
     :return:
     """
 
-    test_path = Path(test_path)
-    mask_path = Path(mask_path)
+    test_path = Path(test_path).resolve()
+    mask_path = Path(mask_path).resolve()
 
     all_masks_data = list()
     for p in test_path.glob("**/*"):
