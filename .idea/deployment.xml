@@ -1,11 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" autoUploadExternalChanges="true">
+  <component name="PublishConfigData" autoUpload="Always" serverName="gorana@alfa:22 password" autoUploadExternalChanges="true">
     <serverData>
-      <paths name="changlu@152.66.240.21:22 key">
+      <paths name="alfa_hpc_ftn_klaster">
         <serverdata>
           <mappings>
-            <mapping deploy="/temp/SA-UNet" local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/retina/SA-UNet" local="$PROJECT_DIR$" web="/retina/saunet" />
+          </mappings>
+          <excludedPaths>
+            <excludedPath local="true" path="$PROJECT_DIR$/CHASE" />
+            <excludedPath local="true" path="$PROJECT_DIR$/DRIVE" />
+            <excludedPath local="true" path="$PROJECT_DIR$/models" />
+            <excludedPath local="true" path="$PROJECT_DIR$/data" />
+          </excludedPaths>
+        </serverdata>
+      </paths>
+      <paths name="gorana@alfa:22 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/gorana/retina/SA-UNet" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>
