@@ -1,4 +1,3 @@
-import argparse
 import click
 import os
 import json
@@ -23,10 +22,25 @@ from util import get_label_pattern_for_dataset
 from config import Config
 
 
-def train(context, train_images_dir, train_labels_dir, val_images_dir, val_labels_dir, model_path,
-          dataset, desired_size, start_neurons, lr, keep_prob, block_size, epochs, batch_size, dry_run=False,
-          transfer_learning_model=None):
-
+@click.command()
+@click.option('--train_images_dir', help='A path to a directory with training images.')
+@click.option('--train_labels_dir', help='A path to a directory with groundtruths corresponding to training images.')
+@click.option('--val_images_dir', help='A path to a directory with validation images.')
+@click.option('--val_labels_dir', help='A path to a directory with groundtruths corresponding to validation images')
+@click.option('--dataset', type=click.Choice(['DRIVE', 'STARE', 'CHASE', 'DROPS'], case_sensitive=True),
+              help='A dataset on which to train the network.')
+@click.option('--model_path', help='Path to the h5 file where the trained model will be saved.')
+@click.option('--transfer_learning_model', default=None, help='Path to the h5 file with network weights for initialization.')
+@click.option('--desired_size', type=click.INT, help='Desired image size. Input images will be resized to <desired_size>x<desired_size>.')
+@click.option('--start_neurons', type=click.INT, default=16, help='')
+@click.option('--epochs', type=click.INT, default=100, help='')
+@click.option('--lr', type=click.FLOAT, default=1e-3, help='Training learning rate.')
+@click.option('--keep_prob', type=click.FLOAT, default=1, help='')
+@click.option('--block_size', type=click.INT, default=1, help='')
+@click.option('--batch_size', type=click.INT, default=2, help='')
+@click.option('--dry_run', is_flag=True, help='Run training script and skip model training.')
+def train(train_images_dir, train_labels_dir, val_images_dir, val_labels_dir, model_path, dataset, desired_size,
+          start_neurons, lr, keep_prob, block_size, epochs, batch_size, dry_run, transfer_learning_model):
     x_train, y_train = load_files(
         train_images_dir,
         train_labels_dir,
@@ -113,62 +127,6 @@ def train(context, train_images_dir, train_labels_dir, val_images_dir, val_label
         plt.savefig(Path(model_path).parent / (Path(model_path).stem))
 
 
-def get_argument(argument, context, args):
-    if context is None:
-        return args[argument]
-    value = context.get_param(argument)
-    if value is None:
-        return args[argument]
-    return value
-
-
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser()
-
-    # general arguments
-    parser.add_argument('--model_path', type=str, help='Path to the h5 file where the trained model will be saved.')
-    parser.add_argument('--weights_path', type=str, default=None, help="Path to the h5 file with network weights.")
-    parser.add_argument('--train_images_dir', type=str,
-                        help='Relative or absolute path to a directory containing training '
-                             'images. The directory should contain only training images '
-                             'since all files loaded during the training.')
-    parser.add_argument('--train_labels_dir', type=str,
-                        help='Relative or absolute path to the label images directory. The '
-                             'directory should contain only training images since all '
-                             'files are loaded for training purposes.')
-    parser.add_argument('--val_images_dir', type=str,
-                        help="Relative or absolute path to a validation images directory.")
-    parser.add_argument('--val_labels_dir', type=str,
-                        help="Relative or absolute path to a validation labels directory.")
-    parser.add_argument('-d', '--dataset', choices=['DRIVE', 'CHASE', 'DROPS', 'STARE'],
-                        help='Can be DRIVE, CHASE or DROPS.')
-    parser.add_argument('--dry_run', action='store_const', const=True, default=False)
-
-    args = vars(parser.parse_args())  # access arguments using dictionary syntax
-
-    try:
-        context = get_or_create_ctx('train')
-    except NameError:
-        context = None
-        pass
-
-    dataset = get_argument('dataset', context, args)
-    train(
-        context=context,
-        train_images_dir=get_argument('train_images_dir', context, args),
-        train_labels_dir=get_argument('train_labels_dir', context, args),
-        val_images_dir=get_argument('val_images_dir', context, args),
-        val_labels_dir=get_argument('val_labels_dir', context, args),
-        transfer_learning_model=get_argument('weights_path', context, args),
-        model_path=get_argument('model_path', context, args),
-        dataset=dataset,
-        dry_run=get_argument('dry_run', context, args),
-        desired_size=Config.datasets[dataset][2],
-        start_neurons=Config.Network.start_neurons,
-        lr=Config.Network.learning_rate,
-        keep_prob=Config.Network.keep_prob,
-        block_size=Config.Network.block_size,
-        epochs=Config.Network.epochs,
-        batch_size=Config.Network.batch_size
-    )
+    train()
