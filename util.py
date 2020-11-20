@@ -189,6 +189,25 @@ def get_label_pattern_for_dataset(dataset):
     elif dataset == 'STARE':
         return get_label_name_stare
 
+def get_desired_size(dataset):
+    """
+    Returns desired image size for a given dataset.
+
+    :param dataset: A case sensitive dataset name.
+    :return: Desired image size.
+    :rtype: int
+    """
+    if dataset == 'DRIVE':
+        return 592
+    elif dataset == 'CHASE':
+        return 1008
+    elif dataset == 'DROPS':
+        return 1008
+    elif dataset == 'STARE':
+        return 1008
+    else:
+        return 1008
+
 
 def get_label_name_drops(image_path):
     return Path(image_path).stem + '.png'

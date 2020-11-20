@@ -4,10 +4,6 @@ import json
 import matplotlib.pyplot as plt
 
 from datetime import datetime
-try:
-    from mlrun import get_or_create_ctx
-except ImportError:
-    pass
 from keras.callbacks import TensorBoard, ModelCheckpoint
 from pathlib import Path
 from tensorflow import ConfigProto, Session
@@ -17,9 +13,8 @@ config.gpu_options.allow_growth = True
 sess = Session(config=config)
 
 from SA_UNet import SA_UNet
-from util import load_files
+from util import load_files, get_desired_size
 from util import get_label_pattern_for_dataset
-from config import Config
 
 
 @click.command()
@@ -31,7 +26,6 @@ from config import Config
               help='A dataset on which to train the network.')
 @click.option('--model_path', help='Path to the h5 file where the trained model will be saved.')
 @click.option('--transfer_learning_model', default=None, help='Path to the h5 file with network weights for initialization.')
-@click.option('--desired_size', type=click.INT, help='Desired image size. Input images will be resized to <desired_size>x<desired_size>.')
 @click.option('--start_neurons', type=click.INT, default=16, help='')
 @click.option('--epochs', type=click.INT, default=100, help='')
 @click.option('--lr', type=click.FLOAT, default=1e-3, help='Training learning rate.')
@@ -39,8 +33,9 @@ from config import Config
 @click.option('--block_size', type=click.INT, default=1, help='')
 @click.option('--batch_size', type=click.INT, default=2, help='')
 @click.option('--dry_run', is_flag=True, help='Run training script and skip model training.')
-def train(train_images_dir, train_labels_dir, val_images_dir, val_labels_dir, model_path, dataset, desired_size,
+def train(train_images_dir, train_labels_dir, val_images_dir, val_labels_dir, model_path, dataset,
           start_neurons, lr, keep_prob, block_size, epochs, batch_size, dry_run, transfer_learning_model):
+    desired_size = get_desired_size(dataset)
     x_train, y_train = load_files(
         train_images_dir,
         train_labels_dir,
@@ -128,5 +123,4 @@ def train(train_images_dir, train_labels_dir, val_images_dir, val_labels_dir, mo
 
 
 if __name__ == '__main__':
-
     train()
