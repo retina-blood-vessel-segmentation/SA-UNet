@@ -112,20 +112,30 @@ def train(context, training_images_loc, training_labels_loc, validate_images_loc
         plt.savefig(Path(model_path).parent / (Path(model_path).stem))
 
 
-def get_argument(argument, context, args):
+def get_argument(argument, context, args, config):
     if context is None:
-        return args[argument]
+        if args.get(argument) is not None:
+            return args.get(argument)
+        elif config.get(argument) is not None:
+            return config.get(argument)
+        else:
+            return None
     value = context.get_param(argument)
     if value is None:
-        return args[argument]
+        if args.get(argument) is not None:
+            return args.get(argument)
+        elif config.get(argument) is not None:
+            return config.get(argument)
+        else:
+            return None
     return value
 
 
 if __name__ == '__main__':
 
+    # parse command line arguments
     parser = argparse.ArgumentParser()
 
-    # general arguments
     parser.add_argument('--model_path', type=str, help='Path to the h5 file where the trained model will be saved.')
     parser.add_argument('--weights_path', type=str, default=None, help="Path to the h5 file with network weights.")
     parser.add_argument('--train_images_dir', type=str,
@@ -146,28 +156,39 @@ if __name__ == '__main__':
 
     args = vars(parser.parse_args())  # access arguments using dictionary syntax
 
+    # parse configuration file
+    config = json.load(open("config.json"))
+
+    # get mlrun context
     try:
         context = get_or_create_ctx('train')
     except NameError:
         context = None
         pass
 
-    dataset = get_argument('dataset', context, args)
-    train(
+    dataset = get_argument('dataset', context, args, config)
+    # quick patch for desired_size which should be provided alongside dataset used for training...
+    # maybe not the best way to do this, but it will have to do for now
+    if dataset == 'DRIVE':
+        config['desired_size'] = 592
+    else:
+        config['desired_size'] = 1008
+
+train(
         context=context,
-        training_images_loc=get_argument('train_images_dir', context, args),
-        training_labels_loc=get_argument('train_labels_dir', context, args),
-        validate_images_loc=get_argument('val_images_dir', context, args),
-        validate_label_loc=get_argument('val_labels_dir', context, args),
-        transfer_learning_model=get_argument('weights_path', context, args),
-        model_path=get_argument('model_path', context, args),
+        training_images_loc=get_argument('train_images_dir', context, args, config),
+        training_labels_loc=get_argument('train_labels_dir', context, args, config),
+        validate_images_loc=get_argument('val_images_dir', context, args, config),
+        validate_label_loc=get_argument('val_labels_dir', context, args, config),
+        transfer_learning_model=get_argument('weights_path', context, args, config),
+        model_path=get_argument('model_path', context, args, config),
         dataset=dataset,
-        dry_run=get_argument('dry_run', context, args),
-        desired_size=Config.datasets[dataset][2],
-        start_neurons=Config.Network.start_neurons,
-        lr=Config.Network.learning_rate,
-        keep_prob=Config.Network.keep_prob,
-        block_size=Config.Network.block_size,
-        epochs=Config.Network.epochs,
-        batch_size=Config.Network.batch_size
+        dry_run=get_argument('dry_run', context, args, config),
+        desired_size=get_argument('desired_size', context, args, config),
+        start_neurons=get_argument('start_neurons', context, args, config),
+        lr=get_argument('learning_rate', context, args, config),
+        keep_prob=get_argument('keep_probability', context, args, config),
+        block_size=get_argument('block_size', context, args, config),
+        epochs=get_argument('epochs', context, args, config),
+        batch_size=get_argument('batch_size', context, args, config)
     )
