@@ -1,11 +1,7 @@
-import argparse
+import click
 import os
 os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
-try:
-    from mlrun import get_or_create_ctx
-except ImportError:
-    pass
 from keras.callbacks import ModelCheckpoint
 from tensorflow import ConfigProto, Session
 
@@ -18,11 +14,26 @@ from SA_UNet import SA_UNet
 from config import Config
 
 
-def test(context, model_path, test_images_dir, test_labels_dir, test_masks_dir, output_dir, dataset, threshold, use_fov,
-         desired_size, start_neurons, lr, keep_prob, block_size):
+@click.command()
+@click.option('--model_path', help='Path to the h5 file with weights used for prediction.')
+@click.option('--test_images_dir', help='A directory containing images for prediction.')
+@click.option('--test_labels_dir', help='A directory containing corresponding groundtruth images for prediction images.')
+@click.option('--test_masks_dir', help='A directory containing corresponding masks for prediction images.')
+@click.option('--dataset', type=click.Choice(['DRIVE', 'STARE', 'CHASE', 'DROPS']),
+              help='A case-sensitive dataset name that will be used for inference. ')
+@click.option('--output_dir', help='Path to the directory where inference results will be saved.')
+@click.option('--threshold', type=click.FLOAT, help='Lower bound for predicted pixel being classified as a blood vessel.')
+@click.option('--use_fov', is_flag=True, default=True, help='Calculate metrics just for pixels inside FoV.')
+@click.option('--start_neurons', type=click.INT, default=16, help='')
+@click.option('--lr', type=click.FLOAT, default=1e-3, help='')
+@click.option('--keep_prob', type=click.FLOAT, default=1, help='')
+@click.option('--block_size',  type=click.INT, default=1, help='')
+def test(model_path, test_images_dir, test_labels_dir, test_masks_dir, output_dir, dataset, threshold, use_fov,
+         start_neurons, lr, keep_prob, block_size):
 
     print(f"> Predicting on {dataset} dataset.")
 
+    desired_size = get_desired_size(dataset)
     n_test_images = len(test_labels_dir)
     x_test, y_test = load_files(test_images_dir, test_labels_dir, desired_size, get_label_pattern_for_dataset(dataset),
                                 mode='test')
@@ -77,62 +88,5 @@ def test(context, model_path, test_images_dir, test_labels_dir, test_masks_dir, 
     )
 
 
-def get_argument(argument, context, args):
-    if context is None:
-        return args[argument]
-    value = context.get_param(argument)
-    if value is None:
-        return args[argument]
-    return value
-
-
 if __name__ == '__main__':
-
-    parser = argparse.ArgumentParser()
-
-    # general arguments
-    parser.add_argument('--model_path', type=str, help='Path to the h5 file with weights used for prediction.')
-    parser.add_argument('--test_images_dir', type=str, help='Relative or absolute path to the images containing test'
-                                                            'directories. The directory should contain only test images'
-                                                            'since all files are loaded for prediction purposes.')
-    # parser.add_argument('--n_test_images', type=int, help='Number of test images.')
-    parser.add_argument('--test_labels_dir', type=str,
-                        help='Relative or absolute path to the label images directory. The '
-                             'directory should contain only test images since all files are '
-                             'loaded for prediction purposes.')
-    parser.add_argument('--test_masks_dir', type=str,
-                        help='Relative or absolute path to the masks images directory. The '
-                             'directory should contain only test images since all files are '
-                             'loaded for prediction purposes.')
-    parser.add_argument('-o', '--output_dir', type=str, help='A directory where prediction results will be saved.')
-    parser.add_argument('-d', '--dataset', choices=['DRIVE', 'CHASE', 'DROPS', 'STARE'],
-                        help='Can be DRIVE, CHASE or DROPS.')
-    parser.add_argument('-t', '--threshold', type=float, default=0.5, help='Lower bound for predicted pixel being '
-                                                                           'classified as a blood vessel.')
-    parser.add_argument('--use_fov', action='store_const', const=True, default=True)
-
-    args = vars(parser.parse_args())  # access arguments using dictionary syntax
-
-    try:
-        context = get_or_create_ctx('train')
-    except NameError:
-        context = None
-        pass
-
-    dataset = get_argument('dataset', context, args)
-    test(
-        context=context,
-        model_path=get_argument('model_path', context, args),
-        test_images_dir=get_argument('test_images_dir', context, args),
-        test_labels_dir=get_argument('test_labels_dir', context, args),
-        test_masks_dir=get_argument('test_masks_dir', context, args),
-        output_dir=get_argument('output_dir', context, args),
-        dataset=dataset,
-        threshold=get_argument('threshold', context, args),
-        use_fov=get_argument('use_fov', context, args),
-        desired_size=Config.datasets[dataset][2],
-        start_neurons=Config.Network.start_neurons,
-        lr=Config.Network.learning_rate,
-        keep_prob=Config.Network.keep_prob,
-        block_size=Config.Network.block_size,
-    )
+    test()
