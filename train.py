@@ -1,4 +1,5 @@
 import argparse
+import click
 import os
 import json
 import matplotlib.pyplot as plt
@@ -22,20 +23,20 @@ from util import get_label_pattern_for_dataset
 from config import Config
 
 
-def train(context, training_images_loc, training_labels_loc, validate_images_loc, validate_label_loc, model_path,
+def train(context, train_images_dir, train_labels_dir, val_images_dir, val_labels_dir, model_path,
           dataset, desired_size, start_neurons, lr, keep_prob, block_size, epochs, batch_size, dry_run=False,
           transfer_learning_model=None):
 
     x_train, y_train = load_files(
-        training_images_loc,
-        training_labels_loc,
+        train_images_dir,
+        train_labels_dir,
         desired_size,
         get_label_pattern_for_dataset(dataset),
         mode='train'
     )
     x_validate, y_validate = load_files(
-        validate_images_loc,
-        validate_label_loc,
+        val_images_dir,
+        val_labels_dir,
         desired_size,
         get_label_pattern_for_dataset(dataset),
         mode='validate')
@@ -155,10 +156,10 @@ if __name__ == '__main__':
     dataset = get_argument('dataset', context, args)
     train(
         context=context,
-        training_images_loc=get_argument('train_images_dir', context, args),
-        training_labels_loc=get_argument('train_labels_dir', context, args),
-        validate_images_loc=get_argument('val_images_dir', context, args),
-        validate_label_loc=get_argument('val_labels_dir', context, args),
+        train_images_dir=get_argument('train_images_dir', context, args),
+        train_labels_dir=get_argument('train_labels_dir', context, args),
+        val_images_dir=get_argument('val_images_dir', context, args),
+        val_labels_dir=get_argument('val_labels_dir', context, args),
         transfer_learning_model=get_argument('weights_path', context, args),
         model_path=get_argument('model_path', context, args),
         dataset=dataset,
