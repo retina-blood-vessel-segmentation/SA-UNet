@@ -19,13 +19,16 @@ from config import Config
 
 
 def test(context, model_path, test_images_dir, test_labels_dir, test_masks_dir, output_dir, dataset, threshold, use_fov,
-         desired_size, start_neurons, lr, keep_prob, block_size, test_image_height, test_image_width):
+         desired_size, start_neurons, lr, keep_prob, block_size):
 
     print(f"> Predicting on {dataset} dataset.")
 
     n_test_images = len(test_labels_dir)
     x_test, y_test = load_files(test_images_dir, test_labels_dir, desired_size, get_label_pattern_for_dataset(dataset),
                                 mode='test')
+    assert(len(x_test) != 0)
+    test_image_width, test_image_height = y_test[0].shape
+
     model = SA_UNet(
         input_size=(desired_size, desired_size, 3),
         start_neurons=start_neurons,
@@ -124,8 +127,6 @@ if __name__ == '__main__':
         test_labels_dir=get_argument('test_labels_dir', context, args),
         test_masks_dir=get_argument('test_masks_dir', context, args),
         output_dir=get_argument('output_dir', context, args),
-        test_image_height=Config.datasets[dataset][0],
-        test_image_width=Config.datasets[dataset][1],
         dataset=dataset,
         threshold=get_argument('threshold', context, args),
         use_fov=get_argument('use_fov', context, args),
