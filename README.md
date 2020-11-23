@@ -1,79 +1,39 @@
-# [SA-UNet: Spatial Attention U-Net for Retinal Vessel Segmentation(ICPR 2020)](https://arxiv.org/abs/2004.03696)
+# Korisničko upustvo
 
-## Overview
+## Podešavanja projekta
+Od podešavanja je neophodno prvi put instalirati `conda` okruženje i opciono za potrebe testiranje prekopirati istreirane
+modele. Alternativno, umesto preuzimanja modela oni se mogu istrenirati korišćenjem `train_workflow.py` na način opisan u 
+nastavku.
 
-![SA-UNet](SA-UNet.png?raw=true "SA-UNet")
+### Podešavanja okruženja
+Na alfa serveru u direktorijumu `shared/retina/environments/` se nalazi izvezeno okruženje za projekat. Instalirati ga
+komandom `conda env create -f saunet-env.yml`.
 
-This code is for the paper: Spatial Attention U-Net for Retinal Vessel Segmentation. We report state-of-the-art performances on DRIVE and CHASE DB1 datasets.
+### Postavljanje modela
+Istranirani modeli se mogu preuzeti sa putanje: https://mega.nz/file/nu4SzSIL#i64RmWnhktaG4O8Am6lJF-YSn_rXlVQp1ZLsKoPHiqs
 
-Code written by Changlu Guo, Budapest University of Technology and Economics(BME).
+Modeli su trenirani 2-3 epohe i namenjeni su samo testiranju ispravnosti rešenja. Raspakovani direktorijum je potrebno
+ubaciti direktno u koren projekta.
 
+## Pokretanje
 
-We train and evaluate on Ubuntu 16.04, it will also work for Windows and OS.
+### Automatizovano testiranje
+- Aktivirati instalirano okruženje
+- U terminalu se pozicionirati se poddirektorijum `SA_UNet/mlflow`.
+- Eksportovati putanju do projekta u promenljivu okruženja `PYTHONPATH` (`export PYTHONPATH=<deo_putanje>/SA_UNet:$PYTHONPATH`)
+- Pokrenuti `predict_workflow.py` skript. Ovaj skript će nad svakim od modela u `models` poddirektorijumu projekta
+pokrenuti predikciju na svakom od setova (trenutno su to DRIVE, STARE, CHASE i DROPSv1). Rezulati izvršavanja skripta će 
+se naći u `results` poddirektorijumu.
+- Opciono, pokrenuti `train_workflow.py` skript. Ovaj skript trenira SAUNet model sa podrazumevanim parametrima treninga
+nad svakim od gore navedenih setova podataka i čuva modele u `models` poddirektorijum.
 
+### [Opciono] Pokretanje `mlflow ui` alata za grafički pregled rezultata
+- Nakon ispoštovanog uputstva za automatsko pokretanje, logovi koje `mlflow ui` alat prikazuje će se naći u 
+`SA_UNet/mlflow/mlruns` direktorijumu.
+- Pozicionirati se u terminalu u `SA_UNet/mlflow/` direktorijum i pokrenuti komandu `mlflow ui`. Podrazumevano se server
+podiže na 127.0.0.1:5000. Proizvoljan port je moguće zadati pri pokretanju opcijom `--port <vrednost>`.
 
+Dobije se nešto lepo poput:
 
-### Datasets
-#### Data augmentation:
-1. [keras_dataAug.py](keras_dataAug.py) <br>
-(1) Random rotation; <br>
-(2) adding Gaussian noise; <br>
-(3) color jittering; <br>
-2.[flip.py](flip.py)<br>
-(4) horizontal, vertical and diagonal flips.
-
-if you do not want to do above augmentation,just download it from my link.
-
-[DRIVE](https://drive.google.com/file/d/1t_UxlVWZXBtJQQNxW0vPdwrnqcdYdrRs/view?usp=sharing)
-[CHASE_DB1](https://drive.google.com/file/d/1RnPR3hpKIHnu0e3y9DBOXKPXuiqPN8hg/view?usp=sharing)
-
-## Quick start 
-
-### Training
-Run [Train_drive.py](Train_drive.py)  or [Train_chase.py](Train_chase.py)
-### Testing
-Run [Eval_drive.py](Eval_drive.py) or [Eval_chase.py](Eval_chase.py)
-
-
-
-## Environments
-Keras 2.3.1  <br>
-Tensorflow==1.14.0 <br>
-
-## About Keras
-
-Keras is a minimalist, highly modular neural networks library, written in Python and capable of running on top of either TensorFlow or Theano. It was developed with a focus on enabling fast experimentation. Being able to go from idea to result with the least possible delay is key to doing good research.
-
-Use Keras if you need a deep learning library that:
-
-allows for easy and fast prototyping (through total modularity, minimalism, and extensibility).
-supports both convolutional networks and recurrent networks, as well as combinations of the two.
-supports arbitrary connectivity schemes (including multi-input and multi-output training).
-runs seamlessly on CPU and GPU.
-Read the documentation [Keras.io](http://keras.io/)
-
-Keras is compatible with: Python 2.7-3.5.
-
-
-
-# If you are inspired by our work, please cite these papers.
-
-
-#### Structured dropout convolutional block
-@INPROCEEDINGS{8942005,  <br>
-author={C. {Guo} and M. {Szemenyei} and Y. {Pei} and Y. {Yi} and W. {Zhou}}, <br> 
-booktitle={2019 IEEE 19th International Conference on Bioinformatics and Bioengineering (BIBE)},   <br>
-title={SD-Unet: A Structured Dropout U-Net for Retinal Vessel Segmentation},   <br>
-year={2019},  <br>
-volume={},  <br>
-number={},  <br>
-pages={439-444},}<br>
-
-
-@article{Guo2020SAUNetSA,<br>
-  title={SA-UNet: Spatial Attention U-Net for Retinal Vessel Segmentation},<br>
-  author={Changlu Guo and Marton Szemenyei and Yugen Yi and Wenle Wang and Buer Chen and Changqi Fan},<br>
-  journal={ArXiv},<br>
-  year={2020},<br>
-  volume={abs/2004.03696}<br>
-}<br>
+![SA-UNet](mlflowui.png?raw=true "mlflow ui")
+ 
