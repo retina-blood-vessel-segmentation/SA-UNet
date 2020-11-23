@@ -19,3 +19,6 @@ tensorboard==1.14.0
 tensorboard-plugin-wit==1.6.0.post3
 tensorflow==1.14.0
 tensorflow-estimator==1.14.0
+
+Click~=7.0
+mlflow~=1.12.1
