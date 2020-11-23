@@ -94,8 +94,9 @@ def evaluate(y_test, y_pred, result_dir, threshold=0.5, mask_data=None, use_fov=
     S = (tp + fn) / N
     P = (tp + fp) / N
 
-    Plotter.plot_confusion_matrix([tp, fp, fn, tn], 'SAUNet confusion matrix')
-    mlflow.log_artifact(os.path.join(result_dir), 'confusion_matrix.png')
+    confusion_matrix_path = os.path.join(result_dir, 'confusion_matrix.png')
+    Plotter.plot_confusion_matrix([[tp, fp], [fn, tn]], 'SAUNet confusion matrix', save=confusion_matrix_path)
+    mlflow.log_artifact(confusion_matrix_path)
 
     metrics = dict()
     metrics['accuracy'] = accuracy_score(y_test, y_pred_threshold)
@@ -249,3 +250,4 @@ def get_label_name_stare(image_path):
 
 def get_mask_name_stare(image_path):
     return Path(image_path).stem + '.png'
+

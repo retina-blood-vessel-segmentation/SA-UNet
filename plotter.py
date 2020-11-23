@@ -12,7 +12,7 @@ class Plotter:
     """
 
     @staticmethod
-    def plot_confusion_matrix(confusion_matrix, title=None):
+    def plot_confusion_matrix(confusion_matrix, title=None, save=None):
         """
         Plot confusion matrix.
 
@@ -27,6 +27,9 @@ class Plotter:
         if title is None:
             title = 'Confusion matrix'
         ax.set_title(title)
+
+        if save is not None:
+            fig.savefig(save)
 
         return fig, ax
 
