@@ -9,6 +9,7 @@ class DatasetConfiguration:
                  train_labels_path,
                  test_images_path,
                  test_labels_path,
+                 test_masks_path,
                  validation_images_path,
                  validation_labels_path,
                  image_width=None,
@@ -18,6 +19,7 @@ class DatasetConfiguration:
         self.train_labels_path = train_labels_path
         self.test_images_path = test_images_path
         self.test_labels_path = test_labels_path
+        self.test_masks_path = test_masks_path
         self.val_images_path = validation_images_path
         self.val_labels_path = validation_labels_path
         self.image_width = image_width
@@ -35,6 +37,7 @@ class DatasetConfiguration:
                 train_labels_path=str(troot / "train/labels"),
                 test_images_path=str(troot / "test/images"),
                 test_labels_path=str(troot / "test/labels"),
+                test_masks_path=str(troot / "test/masks"),
                 validation_images_path=str(troot / "validate/images"),
                 validation_labels_path=str(troot / "validate/labels"),
             )
