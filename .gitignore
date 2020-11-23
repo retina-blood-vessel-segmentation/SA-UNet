@@ -275,8 +275,8 @@ dmypy.json
 
 # End of https://www.toptal.com/developers/gitignore/api/linux,python,pycharm,visualstudiocode
 
-CHASE/
-DRIVE/
-DROPS/
-Model/
+data/
+models/
 results/
+mlruns/
+mlflow/mlruns/
