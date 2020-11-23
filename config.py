@@ -1,31 +1,46 @@
-class Config:
+from pathlib import Path
 
-    _desired_size_STARE = 1008
-    _h_STARE = 700
-    _w_STARE = 605
 
-    _desired_size_DRIVE = 592
-    _h_DRIVE = 565
-    _w_DRIVE = 584
+class DatasetConfiguration:
 
-    _desired_size_CHASE = 1008
-    _h_CHASE = 999
-    _w_CHASE = 960
+    def __init__(self,
+                 dataset_name,
+                 train_images_path,
+                 train_labels_path,
+                 test_images_path,
+                 test_labels_path,
+                 validation_images_path,
+                 validation_labels_path,
+                 image_width=None,
+                 image_height=None):
+        self.dataset_name = dataset_name
+        self.train_images_path = train_images_path
+        self.train_labels_path = train_labels_path
+        self.test_images_path = test_images_path
+        self.test_labels_path = test_labels_path
+        self.val_images_path = validation_images_path
+        self.val_labels_path = validation_labels_path
+        self.image_width = image_width
+        self.image_height = image_height
 
-    _desired_size_DROPS = 1008
-    _h_DROPS = 480
-    _w_DROPS = 640
+    @staticmethod
+    def get_datasets_configuration(root):
+        dataset_configs = []
+        root = Path(root)
+        for dataset in ["DRIVE", "STARE", "CHASE", "DROPS"]:
+            troot = root / dataset
+            dataset_config = DatasetConfiguration(
+                dataset_name=dataset,
+                train_images_path=str(troot / "train/images"),
+                train_labels_path=str(troot / "train/labels"),
+                test_images_path=str(troot / "test/images"),
+                test_labels_path=str(troot / "test/labels"),
+                validation_images_path=str(troot / "validate/images"),
+                validation_labels_path=str(troot / "validate/labels"),
+            )
+            dataset_configs.append(dataset_config)
+        return dataset_configs
 
-    datasets = dict()
-    datasets['DRIVE'] = (_h_DRIVE, _w_DRIVE, _desired_size_DRIVE)
-    datasets['STARE'] = (_h_STARE, _w_STARE, _desired_size_STARE)
-    datasets['CHASE'] = (_h_CHASE, _w_CHASE, _desired_size_CHASE)
-    datasets['DROPS'] = (_h_DROPS, _w_DROPS, _desired_size_DROPS)
 
-    class Network:
-        learning_rate = 1e-3
-        start_neurons = 16
-        keep_prob = 1
-        block_size = 1
-        epochs = 150
-        batch_size = 2
+DATASETS_ROOT_DIR = "./data"
+datasets = DatasetConfiguration.get_datasets_configuration(DATASETS_ROOT_DIR)
