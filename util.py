@@ -2,6 +2,7 @@ import cv2
 import imageio
 import json
 import math
+import mlflow
 import numpy as np
 import pickle
 import os
@@ -9,6 +10,8 @@ import os
 from pathlib import Path
 from sklearn.metrics import recall_score, roc_auc_score, accuracy_score, roc_curve
 from sklearn.metrics import confusion_matrix, precision_score, jaccard_score
+
+from plotter import Plotter
 
 
 def crop_to_shape(data, shape):
@@ -84,11 +87,15 @@ def evaluate(y_test, y_pred, result_dir, threshold=0.5, mask_data=None, use_fov=
     fpr, tpr, thresholds = roc_curve(y_true=y_test, y_score=y_pred)
     with open(os.path.join(result_dir, 'roc.pickle'), 'wb') as roc_file:
         pickle.dump([fpr, tpr, thresholds], roc_file)
+    # mlflow.log_artifact(os.path.join(result_dir, 'roc.pickle'))
 
     tn, fp, fn, tp = confusion_matrix(y_test, y_pred_threshold).ravel()
     N = tn + tp + fn + fp
     S = (tp + fn) / N
     P = (tp + fp) / N
+
+    Plotter.plot_confusion_matrix([tp, fp, fn, tn], 'SAUNet confusion matrix')
+    mlflow.log_artifact(os.path.join(result_dir), 'confusion_matrix.png')
 
     metrics = dict()
     metrics['accuracy'] = accuracy_score(y_test, y_pred_threshold)
@@ -104,6 +111,8 @@ def evaluate(y_test, y_pred, result_dir, threshold=0.5, mask_data=None, use_fov=
         json.dump(metrics, fout)
 
     print(metrics)
+
+    mlflow.log_metrics(metrics)
 
 
 def load_files(images_path, label_path, desired_size, label_name_fnc, mode):
@@ -188,6 +197,7 @@ def get_label_pattern_for_dataset(dataset):
         return get_label_name_drops
     elif dataset == 'STARE':
         return get_label_name_stare
+
 
 def get_desired_size(dataset):
     """

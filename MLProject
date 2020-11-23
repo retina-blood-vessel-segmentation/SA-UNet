@@ -1,0 +1,110 @@
+name: SAUNet network for retinal vessel segmentation
+
+entry_points:
+    train:
+        parameters:
+            train_images_dir: path
+            train_labels_dir: path
+            val_images_dir: path
+            val_labels_dir: path
+            dataset: string
+            model_path: string
+            start_neurons: {type: float, default: 16}
+            epochs: {type: float, default: 100}
+            lr: {type: float, default: 0.001}
+            keep_prob: {type: float, default: 1}
+            block_size: {type: float, default: 1}
+            batch_size: {type: float, default: 2}
+        command: "python train.py
+            --train_images_dir {train_images_dir}
+            --train_labels_dir {train_labels_dir}
+            --val_images_dir {val_images_dir}
+            --val_labels_dir {val_labels_dir}
+            --dataset {dataset}
+            --model_path {model_path}
+            --start_neurons {start_neurons}
+            --epochs {epochs}
+            --lr {lr}
+            --keep_prob {keep_prob}
+            --block_size {block_size}
+            --batch_size {batch_size}"
+    train_dry_run:
+        parameters:
+            train_images_dir: path
+            train_labels_dir: path
+            val_images_dir: path
+            val_labels_dir: path
+            dataset: string
+            model_path: string
+            start_neurons: {type: float, default: 16}
+            epochs: {type: float, default: 100}
+            lr: {type: float, default: 0.001}
+            keep_prob: {type: float, default: 1}
+            block_size: {type: float, default: 1}
+            batch_size: {type: float, default: 2}
+        command: "python train.py
+            --train_images_dir {train_images_dir}
+            --train_labels_dir {train_labels_dir}
+            --val_images_dir {val_images_dir}
+            --val_labels_dir {val_labels_dir}
+            --dataset {dataset}
+            --model_path {model_path}
+            --start_neurons {start_neurons}
+            --epochs {epochs}
+            --lr {lr}
+            --keep_prob {keep_prob}
+            --block_size {block_size}
+            --batch_size {batch_size}
+            --dry_run"
+    test:
+        parameters:
+            model_path: path
+            test_images_dir: path
+            test_labels_dir: path
+            test_masks_dir: path
+            dataset: string
+            output_dir: path
+            threshold: {type: float, default: 0.5}
+            start_neurons: {type: float, default: 16}
+            lr: {type: float, default: 0.001}
+            keep_prob: {type: float, default: 1}
+            block_size: {type: float, default: 1}
+        command: "python test.py
+            --model_path {model_path}
+            --test_images_dir {test_images_dir}
+            --test_labels_dir {test_labels_dir}
+            --test_masks_dir {test_masks_dir}
+            --dataset {dataset}
+            --output_dir {output_dir}
+            --threshold {threshold}
+            --start_neurons {start_neurons}
+            --lr {lr}
+            --keep_prob {keep_prob}
+            --block_size {block_size}"
+    test_dry_run:
+        parameters:
+            model_path: path
+            test_images_dir: path
+            test_labels_dir: path
+            test_masks_dir: path
+            dataset: string
+            output_dir: path
+            threshold: {type: float, default: 0.5}
+            start_neurons: {type: float, default: 16}
+            lr: {type: float, default: 0.001}
+            keep_prob: {type: float, default: 1}
+            block_size: {type: float, default: 1}
+        command: "python test.py
+            --model_path {model_path}
+            --test_images_dir {test_images_dir}
+            --test_labels_dir {test_labels_dir}
+            --test_masks_dir {test_masks_dir}
+            --dataset {dataset}
+            --output_dir {output_dir}
+            --threshold {threshold}
+            --start_neurons {start_neurons}
+            --lr {lr}
+            --keep_prob {keep_prob}
+            --block_size {block_size}
+            --fov
+            --dry_run"
