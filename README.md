@@ -15,6 +15,14 @@ Istranirani modeli se mogu preuzeti sa putanje: https://mega.nz/file/nu4SzSIL#i6
 Modeli su trenirani 2-3 epohe i namenjeni su samo testiranju ispravnosti rešenja. Raspakovani direktorijum je potrebno
 ubaciti direktno u koren projekta.
 
+Potpuno trenirani modeli sa različitim okruženjima se nalaze na /home/shared/retina/models/saunet/trained putanji. 
+
+### Podešavanje
+
+Da bi sve radilo kao konfigurisano, potrebno je da se ulinkuju pravi direktorijumi. To radi bash skirpta 'make_ready' Mora se
+pokrenuti samo jednom, i od tog trenutka do daljneg radi bez problema. Naravno, ovo radi samo na
+klasteru. Ako nisi na klasteru, moraš postaviti odgovarajuću strukturu koja mu odgovara. 
+
 ## Pokretanje
 
 ### Automatizovano testiranje
@@ -22,12 +30,13 @@ ubaciti direktno u koren projekta.
 ali će onda svaki put svlačiti tensorflow i slične velike bliblioteke, što traje. Zbog toga sam se odlučila na manuelno
 aktiviranje okruženja.
 - U terminalu se pozicionirati se poddirektorijum `SA_UNet/mlflow`.
-- Eksportovati putanju do projekta u promenljivu okruženja `PYTHONPATH` (`export PYTHONPATH=<deo_putanje>/SA_UNet:$PYTHONPATH`)
-- Pokrenuti `predict_workflow.py` skript. Ovaj skript će nad svakim od modela u `models` poddirektorijumu projekta
-pokrenuti predikciju na svakom od setova (trenutno su to DRIVE, STARE, CHASE i DROPSv1). Rezulati izvršavanja skripta će 
+- Eksportovati putanju do projekta u promenljivu okruženja `PYTHONPATH` (`export PYTHONPATH=<deo_putanje>/SA_UNet:$PYTHONPATH`). Ovo se može
+i uraditi sa 'make_pythonpath.sh' skriptom. Valja voditi računa da je ovo slučaj kada se skripta mora pokrenuti kao `source make_pythonpath.sh`
+pošto inače nema izmene okruženja. 
+- Pokrenuti `predict_workflow.py` skript. Ovaj skript će nad specificiranim setom dataset-ova poterati evaluaciju, učitavajući svaki put dogovarajući model, tj. DRIVE-model itd. Rezulati izvršavanja skripta će 
 se naći u `results` poddirektorijumu.
 - Opciono, pokrenuti `train_workflow.py` skript. Ovaj skript trenira SAUNet model sa podrazumevanim parametrima treninga
-nad svakim od gore navedenih setova podataka i čuva modele u `models` poddirektorijum.
+nad svakim od gore navedenih setova podataka i čuva modele u `models` poddirektorijum. (trenutno ne radi)
 
 ### [Opciono] Pokretanje `mlflow ui` alata za grafički pregled rezultata
 - Nakon ispoštovanog uputstva za automatsko pokretanje, logovi koje `mlflow ui` alat prikazuje će se naći u 
@@ -45,5 +54,4 @@ Dobije se nešto lepo poput:
 
 ![SA-UNet](mlflowui.png?raw=true "mlflow ui")
 
-Ukoliko se logovi generišu na 
- 
+Ukoliko se logovi generišu na  

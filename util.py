@@ -116,7 +116,7 @@ def evaluate(y_test, y_pred, result_dir, threshold=0.5, mask_data=None, use_fov=
     mlflow.log_metrics(metrics)
 
 
-def load_files(images_path, label_path, desired_size, label_name_fnc, mode):
+def load_files(images_path, label_path, desired_size, label_name_fnc, mode,startat,bucket):
     """
 
     :param path:
@@ -129,7 +129,14 @@ def load_files(images_path, label_path, desired_size, label_name_fnc, mode):
 
     images = list()
     labels = list()
-    for p in images_path.glob('**/*'):
+    i = 0
+    for p in sorted(images_path.glob('**/*')):
+        if i < startat:
+            i = i + 1
+            continue
+        if i >= startat + bucket:
+            break
+        i = i + 1
         im = imageio.imread(str(p))
         old_size = im.shape[:2]
         delta_w = desired_size - old_size[1]
@@ -155,10 +162,10 @@ def load_files(images_path, label_path, desired_size, label_name_fnc, mode):
     if mode.lower() in ['train', 'validate']:
         y_data = np.reshape(y_data, (len(y_data), desired_size, desired_size, 1))
 
-    return x_data, y_data
+    return x_data, y_data, i-startat
 
 
-def load_mask_files(mask_path, test_path, mask_name_fnc):
+def load_mask_files(mask_path, test_path, mask_name_fnc,startat,bucket):
     """
 
     :param mask_path:
@@ -171,7 +178,14 @@ def load_mask_files(mask_path, test_path, mask_name_fnc):
     mask_path = Path(mask_path).resolve()
 
     all_masks_data = list()
-    for p in test_path.glob("**/*"):
+    i = 0
+    for p in sorted(test_path.glob("**/*")):
+        if i < startat:
+            i = i + 1
+            continue
+        if i >= startat + bucket:
+            break
+        i = i + 1
         mask_data = imageio.imread(mask_path / mask_name_fnc(p))
         all_masks_data.append(np.array(mask_data).astype('float32') / 255.)
 
@@ -183,10 +197,16 @@ def get_mask_pattern_for_dataset(dataset):
         return get_mask_name_drive
     elif dataset == 'CHASE':
         return get_mask_name_chase
+    elif dataset == 'DRIVE-eval':
+        return get_mask_name_drive_eval
+    elif dataset == 'CHASE-eval':
+        return get_mask_name_chase_eval
     elif dataset == 'DROPS':
         return get_mask_name_drops
     elif dataset == 'STARE':
         return get_mask_name_stare
+    else:
+        return get_mask_name_universal
 
 
 def get_label_pattern_for_dataset(dataset):
@@ -194,10 +214,16 @@ def get_label_pattern_for_dataset(dataset):
         return get_label_name_drive
     elif dataset == 'CHASE':
         return get_label_name_chase
+    elif dataset == 'DRIVE-eval':
+        return get_label_name_drive_eval
+    elif dataset == 'CHASE-eval':
+        return get_label_name_chase_eval
     elif dataset == 'DROPS':
         return get_label_name_drops
     elif dataset == 'STARE':
         return get_label_name_stare
+    else:
+        return get_label_name_universal
 
 
 def get_desired_size(dataset):
@@ -215,6 +241,14 @@ def get_desired_size(dataset):
     elif dataset == 'DROPS':
         return 1008
     elif dataset == 'STARE':
+        return 1008
+    if dataset == 'DRIVE-eval':
+        return 592
+    elif dataset == 'CHASE-eval':
+        return 1008
+    elif dataset == 'DROPS-eval':
+        return 1008
+    elif dataset == 'STARE-eval':
         return 1008
     else:
         return 1008
@@ -251,3 +285,24 @@ def get_label_name_stare(image_path):
 def get_mask_name_stare(image_path):
     return Path(image_path).stem + '.png'
 
+def get_mask_name_universal(image_path):
+    return Path(image_path).name
+
+def get_label_name_universal(image_path):
+    return Path(image_path).name
+
+def get_mask_name_drive_eval(image_path):
+    p = Path(image_path)
+    return p.stem + ".gif" if p.suffix == ".tif" else ".png"
+
+def get_label_name_drive_eval(image_path):
+    p = Path(image_path)
+    return p.stem + ".gif" if p.suffix == ".tif" else ".png"
+
+def get_mask_name_chase_eval(image_path):
+    p = Path(image_path)
+    return p.stem + ".png"
+
+def get_label_name_chase_eval(image_path):
+    p = Path(image_path)
+    return p.stem + ".png"

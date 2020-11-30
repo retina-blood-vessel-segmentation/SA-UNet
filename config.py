@@ -27,10 +27,22 @@ class DatasetConfiguration:
 
     @staticmethod
     def get_datasets_configuration(root):
-        dataset_configs = []
+        dataset_configs = {}
         root = Path(root)
-        for dataset in ["DRIVE", "STARE", "CHASE", "DROPS"]:
-            troot = root / dataset
+        for dataset in ["DRIVE", "STARE", "CHASE", "DROPS", "HRF","UNI"]:
+            troot = root / "eval" / dataset
+            dataset_config = DatasetConfiguration(
+                dataset_name=dataset + "-eval", 
+                train_images_path=str(troot / "images"),
+                train_labels_path=str(troot / "labels"),
+                test_images_path=str(troot / "images"),
+                test_labels_path=str(troot / "labels"),
+                test_masks_path=str(troot / "masks"),
+                validation_images_path=str(troot / "v" / "images"),
+                validation_labels_path=str(troot / "v" / "labels"),
+            )
+            dataset_configs[dataset  + "-eval"] = dataset_config
+            troot = root / "train/saunet" / dataset
             dataset_config = DatasetConfiguration(
                 dataset_name=dataset,
                 train_images_path=str(troot / "train/images"),
@@ -41,7 +53,7 @@ class DatasetConfiguration:
                 validation_images_path=str(troot / "validate/images"),
                 validation_labels_path=str(troot / "validate/labels"),
             )
-            dataset_configs.append(dataset_config)
+            dataset_configs[dataset] = dataset_config
         return dataset_configs
 
 

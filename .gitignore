@@ -282,3 +282,4 @@ models/
 results/
 mlruns/
 mlflow/mlruns/
+results
