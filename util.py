@@ -147,8 +147,11 @@ def load_files(images_path, label_path, desired_size, label_name_fnc, mode,start
 
         new_im = cv2.copyMakeBorder(im, top, bottom, left, right, cv2.BORDER_CONSTANT, value=[0, 0, 0])
         images.append(cv2.resize(new_im, (desired_size, desired_size)))
-
-        label = imageio.imread(label_path / label_name_fnc(p), pilmode='L')
+        label = None
+        if (label_path / label_name_fnc(p)).suffix == ".gif":
+            label = imageio.imread(label_path / label_name_fnc(p))
+        else:
+            label = imageio.imread(label_path / label_name_fnc(p), pilmode='L')
         if mode.lower() in ['train', 'validate']:
             new_label = cv2.copyMakeBorder(label, top, bottom, left, right, cv2.BORDER_CONSTANT, value=[0])
             _, temp = cv2.threshold(new_label, 127, 255, cv2.THRESH_BINARY)
@@ -293,11 +296,10 @@ def get_label_name_universal(image_path):
 
 def get_mask_name_drive_eval(image_path):
     p = Path(image_path)
-    return p.stem + ".gif" if p.suffix == ".tif" else ".png"
-
+    return p.stem + ".gif" 
 def get_label_name_drive_eval(image_path):
     p = Path(image_path)
-    return p.stem + ".gif" if p.suffix == ".tif" else ".png"
+    return p.stem + ".gif" 
 
 def get_mask_name_chase_eval(image_path):
     p = Path(image_path)

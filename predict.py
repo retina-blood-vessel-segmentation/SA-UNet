@@ -76,7 +76,9 @@ def test(model_path, test_images_dir, test_labels_dir, test_masks_dir, output_di
         while flag:
             x_test, y_test,n = load_files(test_images_dir, test_labels_dir, desired_size, get_label_pattern_for_dataset(dataset),
                                         mode='test',startat=startat,bucket=bucket)
-            assert(len(x_test) != 0)
+            if len(x_test) == 0:
+                flag = False
+                continue
 
             test_image_width, test_image_height = y_test[0].shape
 
