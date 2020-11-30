@@ -1,5 +1,6 @@
 import glob
 import mlflow
+import os
 
 from pathlib import Path
 
@@ -9,8 +10,6 @@ project_path = Path('..').resolve()
 models_root_dir = project_path / 'models'
 results_root_dir = project_path / 'results'
 datasets_root_dir = project_path / 'data'
-python_interpreter = '/home/gorana/miniconda3/envs/saunetpy36/bin/python'
-
 
 def predict_all_models():
 
