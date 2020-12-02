@@ -24,7 +24,7 @@ from plotter import Plotter
 @click.option('--train_labels_dir', help='A path to a directory with groundtruths corresponding to training images.')
 @click.option('--val_images_dir', help='A path to a directory with validation images.')
 @click.option('--val_labels_dir', help='A path to a directory with groundtruths corresponding to validation images')
-@click.option('--dataset', type=click.Choice(['DRIVE', 'STARE', 'CHASE', 'DROPS'], case_sensitive=True),
+@click.option('--dataset', type=click.Choice(['DRIVE', 'STARE', 'CHASE', 'HRF', 'DROPS'], case_sensitive=True),
               help='A dataset on which to train the network.')
 @click.option('--model_path', help='Path to the h5 file where the trained model will be saved.')
 @click.option('--transfer_learning_model', default=None, help='Path to the h5 file with network weights for initialization.')
@@ -135,8 +135,6 @@ def train(train_images_dir, train_labels_dir, val_images_dir, val_labels_dir, mo
             save_dir = Path(model_path).parent / (Path(model_path).stem)
             fig, ax = Plotter.plot_training_acc(train_acc, validation_acc, save=str(save_dir) + ".png")
             mlflow.log_artifact(str(save_dir) + '.png')
-
-            # TODO log plot to artefacts
 
 
 if __name__ == '__main__':

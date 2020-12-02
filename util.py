@@ -187,6 +187,8 @@ def get_mask_pattern_for_dataset(dataset):
         return get_mask_name_drops
     elif dataset == 'STARE':
         return get_mask_name_stare
+    elif dataset == 'HRF':
+        return get_mask_name_hrf
 
 
 def get_label_pattern_for_dataset(dataset):
@@ -198,6 +200,8 @@ def get_label_pattern_for_dataset(dataset):
         return get_label_name_drops
     elif dataset == 'STARE':
         return get_label_name_stare
+    elif dataset == 'HRF':
+        return get_label_name_hrf
 
 
 def get_desired_size(dataset):
@@ -216,8 +220,8 @@ def get_desired_size(dataset):
         return 1008
     elif dataset == 'STARE':
         return 1008
-    else:
-        return 1008
+    elif dataset == 'HRF':
+        return 3504
 
 
 def get_label_name_drops(image_path):
@@ -251,3 +255,10 @@ def get_label_name_stare(image_path):
 def get_mask_name_stare(image_path):
     return Path(image_path).stem + '.png'
 
+
+def get_label_name_hrf(image_path):
+    return Path(image_path).stem + '.png'
+
+
+def get_mask_name_hrf(image_path):
+    return Path(image_path).stem + '_mask.png'
