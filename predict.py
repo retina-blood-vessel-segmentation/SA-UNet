@@ -71,7 +71,7 @@ def test(model_path, test_images_dir, test_labels_dir, test_masks_dir, output_di
 
 
         flag = True
-        bucket = 25
+        bucket = 50
         startat = 0
         while flag:
             x_test, y_test,n = load_files(test_images_dir, test_labels_dir, desired_size, get_label_pattern_for_dataset(dataset),
@@ -85,7 +85,7 @@ def test(model_path, test_images_dir, test_labels_dir, test_masks_dir, output_di
             model_checkpoint = ModelCheckpoint(model_path, monitor='val_accuracy', verbose=1, save_best_only=False)
 
             y_pred = model.predict(x_test)
-            y_pred = crop_to_shape(y_pred, (n_test_images, test_image_height, test_image_width, 1))
+            y_pred = crop_to_shape(y_pred, (n_test_images, test_image_width, test_image_height, 1))
 
             # save predictions
 
@@ -93,15 +93,14 @@ def test(model_path, test_images_dir, test_labels_dir, test_masks_dir, output_di
             # mlflow.log_artifact(segmentation_masks_dir)
 
             for i, y in enumerate(y_pred):
-                _, temp = cv2.threshold(y, threshold, 1, cv2.THRESH_BINARY)
                 cv2.imwrite(os.path.join(probability_maps_dir, f"{i+startat}.png"), y * 255)
-                cv2.imwrite(os.path.join(segmentation_masks_dir, f"{i+startat}-threshold-{threshold}.png"), temp * 255)
+                #cv2.imwrite(os.path.join(segmentation_masks_dir, f"{i+startat}-threshold-{threshold}.png"), temp * 255)
             y_test = list(np.ravel(y_test))
 
             # load masks if you want statistics to be calculated just for inside fov
-            all_masks_data = None
-            if use_fov:
-                all_masks_data = np.ravel(load_mask_files(test_masks_dir, test_images_dir, get_mask_pattern_for_dataset(dataset), startat, bucket))
+            #all_masks_data = None
+            #if use_fov:
+            #    all_masks_data = np.ravel(load_mask_files(test_masks_dir, test_images_dir, get_mask_pattern_for_dataset(dataset), startat, bucket))
 
 #            odr = os.path.join(output_dir, f"r-{startat}-{n}")
             #if not os.path.exists(odr):

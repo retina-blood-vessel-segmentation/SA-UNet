@@ -14,7 +14,7 @@ datasets_root_dir = project_path / 'data'
 def predict_all_models():
     datasets_configs = DatasetConfiguration.get_datasets_configuration(datasets_root_dir)
 
-    for i in ["CHASE","DRIVE","STARE"]:
+    for i in ["STARE"]:
         dcfg = datasets_configs[i + "-eval"]
         model_path = f"{models_root_dir}/{i}-model/saunet.h5"
         parameters = {

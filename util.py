@@ -225,6 +225,8 @@ def get_label_pattern_for_dataset(dataset):
         return get_label_name_drops
     elif dataset == 'STARE':
         return get_label_name_stare
+    elif dataset == 'STARE-eval':
+        return get_label_name_stare_eval
     else:
         return get_label_name_universal
 
@@ -296,10 +298,15 @@ def get_label_name_universal(image_path):
 
 def get_mask_name_drive_eval(image_path):
     p = Path(image_path)
-    return p.stem + ".gif" 
+    return p.stem + ".png" 
 def get_label_name_drive_eval(image_path):
     p = Path(image_path)
-    return p.stem + ".gif" 
+    return p.stem + ".png" 
+
+def get_label_name_stare_eval(image_path):
+    p = Path(image_path)
+    return p.stem + ".ppm" 
+
 
 def get_mask_name_chase_eval(image_path):
     p = Path(image_path)
