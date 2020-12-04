@@ -11,6 +11,9 @@ models_root_dir = project_path / 'models'
 results_root_dir = project_path / 'results'
 datasets_root_dir = project_path / 'data'
 
+python_interpreter = '/home/gorana/miniconda3/envs/saunetpy36/bin/python'
+mlflow.set_tracking_uri(str(Path('../../mlrun').resolve()))
+
 def predict_all_models():
 
     trained_models = glob.glob(f"{models_root_dir}/*/saunet.h5")
