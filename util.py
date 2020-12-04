@@ -7,6 +7,7 @@ import numpy as np
 import pickle
 import os
 
+from glob import glob
 from pathlib import Path
 from sklearn.metrics import recall_score, roc_auc_score, accuracy_score, roc_curve
 from sklearn.metrics import confusion_matrix, precision_score, jaccard_score
@@ -116,7 +117,7 @@ def evaluate(y_test, y_pred, result_dir, threshold=0.5, mask_data=None, use_fov=
     mlflow.log_metrics(metrics)
 
 
-def load_files(images_path, label_path, desired_size, label_name_fnc, mode):
+def load_files(label_path, desired_size, label_name_fnc, mode, images_list=None, images_path=None):
     """
 
     :param path:
@@ -124,13 +125,18 @@ def load_files(images_path, label_path, desired_size, label_name_fnc, mode):
     :return:
     """
 
-    images_path = Path(images_path).resolve()
     label_path = Path(label_path).resolve()
+
+    if images_list is not None:
+        iterate_images = images_list
+    else:
+        images_path = Path(images_path).resolve()
+        iterate_images = glob(str(images_path) + '/**')
 
     images = list()
     labels = list()
-    for p in images_path.glob('**/*'):
-        im = imageio.imread(str(p))
+    for p in iterate_images:
+        im = imageio.imread(p)
         old_size = im.shape[:2]
         delta_w = desired_size - old_size[1]
         delta_h = desired_size - old_size[0]

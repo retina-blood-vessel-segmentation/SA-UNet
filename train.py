@@ -1,9 +1,14 @@
-import click
 import os
+os.environ['TF_CPP_MIN_VLOG_LEVEL']='3'
+
+import click
 import json
+import numpy as np
 import mlflow
 import matplotlib.pyplot as plt
+import keras
 
+from glob import glob
 from datetime import datetime
 from keras.callbacks import TensorBoard, ModelCheckpoint
 from pathlib import Path
@@ -17,6 +22,39 @@ from SA_UNet import SA_UNet
 from util import load_files, get_desired_size
 from util import get_label_pattern_for_dataset
 from plotter import Plotter
+
+
+class BatchGenerator(keras.utils.Sequence):
+
+    def __init__(self, image_dir_path, label_dir_path, batch_size, dataset, mode):
+        self.image_dir = image_dir_path
+        self.label_dir = label_dir_path
+        self.batch_size = batch_size
+        self.dataset = dataset
+        self.mode = mode
+
+        if not Path(self.image_dir).exists():
+            raise FileNotFoundError(f'Image directory {self.image_dir} does not exist.')
+        if not Path(self.label_dir).exists():
+            raise FileNotFoundError(f'Image directory {self.label_dir} does not exist.')
+
+        self.image_filenames = [fname for fname in glob(self.image_dir + "/**")]
+
+    def __len__(self):
+        return (np.ceil(len(self.image_filenames) / float(self.batch_size))).astype(np.int)
+
+    def __getitem__(self, idx):
+        batch_x_filenames = self.image_filenames[idx*self.batch_size:(idx+1)*self.batch_size]
+
+        batch_x, batch_y = load_files(
+            images_list=batch_x_filenames,
+            label_path=self.label_dir,
+            mode=self.mode,
+            desired_size=get_desired_size(dataset=self.dataset),
+            label_name_fnc=get_label_pattern_for_dataset(dataset=self.dataset)
+        )
+
+        return batch_x, batch_y
 
 
 @click.command()
@@ -49,19 +87,19 @@ def train(train_images_dir, train_labels_dir, val_images_dir, val_labels_dir, mo
             'batch_size': batch_size
         })
         desired_size = get_desired_size(dataset)
-        x_train, y_train = load_files(
-            train_images_dir,
-            train_labels_dir,
-            desired_size,
-            get_label_pattern_for_dataset(dataset),
-            mode='train'
-        )
-        x_validate, y_validate = load_files(
-            val_images_dir,
-            val_labels_dir,
-            desired_size,
-            get_label_pattern_for_dataset(dataset),
-            mode='validate')
+        # x_train, y_train = load_files(
+        #     images_path=train_images_dir,
+        #     label_path=train_labels_dir,
+        #     desired_size=desired_size,
+        #     label_name_fnc=get_label_pattern_for_dataset(dataset),
+        #     mode='train'
+        # )
+        # x_validate, y_validate = load_files(
+        #     images_path=val_images_dir,
+        #     label_path=val_labels_dir,
+        #     desired_size=desired_size,
+        #     label_name_fnc=get_label_pattern_for_dataset(dataset),
+        #     mode='validate')
 
         logdir = Path(f"logs/{dataset}") / datetime.now().strftime("%Y%m%d-%H%M%S")
         tensorboard_callback = TensorBoard(
@@ -96,10 +134,33 @@ def train(train_images_dir, train_labels_dir, val_images_dir, val_labels_dir, mo
 
         print(f"> Training the network on dataset {dataset}.")
         if not dry_run:
-            history = model.fit(x_train, y_train,
+            # history = model.fit(x_train, y_train,
+            #                     epochs=epochs,
+            #                     batch_size=batch_size,
+            #                     validation_data=(x_validate, y_validate),
+            #                     shuffle=True,
+            #                     callbacks=[
+            #                         tensorboard_callback,
+            #                         model_checkpoint
+            #                     ])
+            train_generator = BatchGenerator(
+                image_dir_path=train_images_dir,
+                label_dir_path=train_labels_dir,
+                batch_size=batch_size,
+                dataset=dataset,
+                mode='train'
+            )
+            validate_generator = BatchGenerator(
+                image_dir_path=val_images_dir,
+                label_dir_path=val_labels_dir,
+                batch_size=batch_size,
+                dataset=dataset,
+                mode='validate'
+            )
+            history = model.fit(train_generator,
                                 epochs=epochs,
-                                batch_size=batch_size,
-                                validation_data=(x_validate, y_validate),
+                                # batch_size=batch_size,
+                                validation_data=validate_generator,
                                 shuffle=True,
                                 callbacks=[
                                     tensorboard_callback,
