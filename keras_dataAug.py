@@ -1,16 +1,18 @@
-
+from glob import glob
+from pathlib import Path
 from PIL import Image, ImageEnhance, ImageOps, ImageFile
 import numpy as np
 import random
 import threading, os, time
 import logging
 
+from util import get_label_pattern_for_dataset
+
 logger = logging.getLogger(__name__)
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
 class DataAugmentation:
-
 
     def __init__(self):
         pass
@@ -23,7 +25,14 @@ class DataAugmentation:
     def randomRotation(image, label, mode=Image.BICUBIC):
 
         random_angle = np.random.randint(1, 360)
-        return image.rotate(random_angle, mode), label.rotate(random_angle, Image.NEAREST)
+        random_angle_check = int(random_angle)
+
+        image_rot = image.rotate(random_angle, mode)
+        assert random_angle_check == random_angle
+        label_rot = label.rotate(random_angle, Image.NEAREST)
+        print(f'Rotation angle {random_angle}')
+        return image_rot, label_rot
+        # return image.rotate(random_angle, mode), label.rotate(random_angle, Image.NEAREST)
 
 
     @staticmethod
@@ -104,10 +113,11 @@ def imageOps(func_name, image, label, img_des_path, label_des_path, img_file_nam
         DataAugmentation.saveImage(new_label, os.path.join(label_des_path, func_name + str(_i) + label_file_name))
 
 
-opsList = {"randomRotation", "randomColor", "randomGaussian"}
+opsList = {"randomColor"}
+# opsList = {"randomRotation", "randomColor", "randomGaussian"}
 
 
-def threadOPS(img_path, new_img_path, label_path, new_label_path):
+def threadOPS(img_path, new_img_path, label_path, new_label_path, dataset):
 
     if not os.path.exists(new_img_path):
         os.makedirs(new_img_path, exist_ok=True)
@@ -122,11 +132,13 @@ def threadOPS(img_path, new_img_path, label_path, new_label_path):
     else:
         img_names = [img_path]
 
-    # label path
-    if os.path.isdir(label_path):
-        label_names = os.listdir(label_path)
-    else:
-        label_names = [label_path]
+    label_paths = []
+    for img_name in img_names:
+        absolute_img_path = Path(img_path) / img_name
+        label_paths.append(
+            Path(label_path) / get_label_pattern_for_dataset(dataset)(absolute_img_path)
+        )
+    label_names = [str(label_path.name) for label_path in label_paths]
 
     img_num = 0
     label_num = 0
@@ -163,7 +175,7 @@ def threadOPS(img_path, new_img_path, label_path, new_label_path):
         tmp_img_name = os.path.join(img_path, img_name)
         tmp_label_name = os.path.join(label_path, label_name)
 
-        print(tmp_img_name)
+        print(f"{tmp_img_name}, {tmp_label_name}")
         image = DataAugmentation.openImage(tmp_img_name)
 
         label = DataAugmentation.openImage(tmp_label_name)
@@ -176,7 +188,8 @@ def threadOPS(img_path, new_img_path, label_path, new_label_path):
                                                          label_name))
             threadImage[_index].start()
             _index += 1
-            time.sleep(5)
+            # time.sleep(5)
+
 
 # Please modify the path
 if __name__ == '__main__':
@@ -186,15 +199,19 @@ if __name__ == '__main__':
     # install appropriate numpy version (1.15.4). For the version, check author's
     # requirements file.
 
-    dataset = "DROPS"
+    dataset_dir = "HRF"
+    dataset = "HRF"
 
-    training_images_input_dir = f"{dataset}/train/images"
-    training_images_output_dir = f"{dataset}/aug/images/rotcropetc" # create this dir if it does not exist first, then run the script
-    training_labels_input_dir = f"{dataset}/train/labels"
-    training_labels_output_dir = f"{dataset}/aug/labels/rotcropetc" # create this dir if it does not exist first, then run the script
+    training_images_input_dir = f"data/{dataset_dir}/train/images"
+    training_images_output_dir = f"data/{dataset_dir}/train/aug/images/rotcropetc" # create this dir if it does not exist first, then run the script
+    training_labels_input_dir = f"data/{dataset_dir}/train/labels"
+    training_labels_output_dir = f"data/{dataset_dir}/train/aug/labels/rotcropetc" # create this dir if it does not exist first, then run the script
 
 
-    threadOPS(training_images_input_dir, # set your path of training images
-              training_images_output_dir,
-              training_labels_input_dir, # set your path of training labels
-              training_labels_output_dir)
+    threadOPS(
+        img_path=training_images_input_dir, # set your path of training images
+        new_img_path=training_images_output_dir,
+        label_path=training_labels_input_dir, # set your path of training labels
+        new_label_path=training_labels_output_dir,
+        dataset=dataset
+    )

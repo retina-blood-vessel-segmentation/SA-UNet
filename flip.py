@@ -1,15 +1,15 @@
 import cv2
 import os
 
-dataset = "DROPS"
+dataset = "HRF"
 
 input_paths = [
-    f"{dataset}/train/images",
-    f"{dataset}/train/labels"
+    f"data/{dataset}/train/images",
+    f"data/{dataset}/train/labels"
 ]
 output_paths = [
-    f"{dataset}/aug/images/flip",
-    f"{dataset}/aug/labels/flip"
+    f"data/{dataset}/aug/images/flip",
+    f"data/{dataset}/aug/labels/flip"
 ]
 
 assert len(input_paths) == len(output_paths)
