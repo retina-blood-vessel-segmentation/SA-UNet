@@ -10,6 +10,7 @@ models_root_dir = project_path / 'models'
 results_root_dir = project_path / 'results'
 datasets_root_dir = project_path / 'data'
 python_interpreter = '/home/gorana/miniconda3/envs/saunetpy36/bin/python'
+mlflow.set_tracking_uri(str(Path('../../mlflow_db').resolve()))
 
 
 def train_all_without_transfer_learning(models_root_dir):
@@ -28,7 +29,7 @@ def train_all_without_transfer_learning(models_root_dir):
             'val_images_dir': str(project_path / dataset_config.val_images_path),
             'val_labels_dir': str(project_path / dataset_config.val_labels_path),
             'dataset': dataset_config.dataset_name,
-            'model_path': str(models_root_dir / dataset_config.dataset_name + '-model' / 'saunet.h5')
+            'model_path': str(models_root_dir / (dataset_config.dataset_name + '-model') / 'saunet.h5')
         }
 
         try:

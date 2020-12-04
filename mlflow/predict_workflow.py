@@ -1,6 +1,5 @@
 import glob
 import mlflow
-import os
 
 from pathlib import Path
 
@@ -12,7 +11,8 @@ results_root_dir = project_path / 'results'
 datasets_root_dir = project_path / 'data'
 
 python_interpreter = '/home/gorana/miniconda3/envs/saunetpy36/bin/python'
-mlflow.set_tracking_uri(str(Path('../../mlrun').resolve()))
+mlflow.set_tracking_uri(str(Path('../../mlflow_db').resolve()))
+
 
 def predict_all_models():
 
